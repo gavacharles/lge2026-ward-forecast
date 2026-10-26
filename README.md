@@ -1,70 +1,49 @@
 # LGE 2026 ward forecast (South Africa, 4 Nov 2026)
 
-**Live map:** https://gavacharles.github.io/lge2026-ward-forecast/
+**Live map:** https://gavacharles.github.io/lge2026-ward-forecast/ · **Full write-up:** [REPORT.md](REPORT.md)
 
-An independent model, not affiliated with the IEC, the Municipal Demarcation Board or any party. It predicts the likely winner of each of the 4,485 wards (IEC delimitation for 2026) and each
-municipality's party strength, with probabilities.
+An independent model, not affiliated with the IEC, the Municipal Demarcation Board or any party.
+It gives a favourite and a win probability for each of the 4,485 wards, expected council seats and
+coalition arithmetic for every municipality, and live updates on election night.
 
-## Method: structure from history, levels from polls
+## How it works, in brief
 
-1. **2026 wards.** `scrape_wards2026.py` reads the IEC results portal (2026 event) to get every
-   ward's voting districts (VDs): 23,696 VDs in 4,485 wards (MDB lists 4,488; 3 Free State wards are not
-   yet on the portal).
-2. **History, re-cut to 2026 wards.** VD-level results of the 2024 national ballot and the 2021
-   local ward ballot are summed into the new wards (`build_data.py`, `model.ward_table`). About 97% of
-   2026 VDs have 2024 history and 96% have 2021 history; the rest fall back to their municipality.
-3. **Structural model.** Per party, in logit space:
-   `share_LGE = a + b * share_latest_NPE + c * share_previous_LGE`, fitted on 2021 (2019 NPE + 2016 LGE).
-   MK split from the ANC in 2023, so a ward's 2021 ANC local vote is split ANC/MK by the ward's 2024 ratio.
-4. **Polls set the levels.** Party levels are shifted so the national total matches the poll average
-   (`config/polls_2026.json`); metros with their own polls are pulled towards them (weight 0.25 to 0.7).
-   Independents and local parties (OTH) keep the model's level because polls under-measure them.
-5. **Uncertainty.** 2,000 simulations with national (poll), municipal and ward-level errors; the
-   municipal and ward error sizes come from the backtest. A ward's "local" contender is the
-   largest non-major party there in 2021.
+1. Past results (2011–2024) are re-added inside the 2026 wards, one voting district at a time.
+2. A per-party model, fitted on the 2016 and 2021 elections, links a ward's latest national result and
+   previous local result to its next local result.
+3. By-elections since 2024 adjust wards by province and community type.
+4. Polls set each party's overall level (recency-weighted, corrected for each pollster's lean in 2024).
+5. 2,000 simulations give win chances, council seats and coalition odds.
+6. On election night a nowcast blends counted voting districts with the forecast.
 
-## Backtest (forecast 2021 from 2019 + 2016, provinces held out)
+In backtests the model called 94.2% (2016) and 90.8% (2021) of ward winners correctly, ahead of simple
+carry-forward baselines (92.8% and 89.3%). See [REPORT.md](REPORT.md) for methods, results and limits.
 
-| Method | Ward winners correct |
-| --- | --- |
-| Carry forward the 2016 local winner | 88.8% |
-| Carry forward the 2019 national-ballot winner | 89.3% |
-| Model, calibrated to the national result | **90.8%** (metros 97.2%) |
-| Model, calibrated to each province's result | 91.3% |
-
-Probabilities are reasonably calibrated: see `outputs/backtest_2021_calibration.csv`.
-The backtest assumes accurate national polling; real poll error adds uncertainty, which the
-forecast simulates (`national_sd_logit`).
-
-## Run
+## Run it
 
 ```sh
-python3 src/download.py          # IEC files -> $ELECTION_DATA (default ~/ElectionModelData)
-python3 src/scrape_wards2026.py  # 2026 ward -> VD map (~20 min, resumable)
-python3 src/build_data.py
-python3 src/backtest.py
-python3 src/forecast_2026.py     # -> outputs/ward_forecast_2026.csv, municipality_forecast_2026.csv
-python3 src/fetch_boundaries.py  # MDB 2026 ward polygons (GeoJSON), then convert to TopoJSON:
-#   npx -p topojson-server geo2topo -q 1e5 wards=mdb_wards_2026.geojson | npx -p topojson-simplify toposimplify -s 1e-8 -f > wards_topo.json
-python3 src/build_site.py        # -> docs/ (GitHub Pages site)
+pip install -r requirements.txt
+python src/pipeline.py                 # backtest -> forecast -> site, from data/interim (about 20 s)
+python src/pipeline.py --refresh-data  # re-download IEC results and by-elections first (slow)
+python src/update_polls.py             # refresh polls from Wikipedia
+python src/nowcast.py replay           # test the election-night nowcast on 2021
+python src/nowcast.py live             # election night: pull IEC results and update ward calls
 ```
 
-Poll inputs live in `config/polls_2026.json`; edit them and re-run the last two model steps to update.
+Polls are in `config/polls_2026.csv` (from Wikipedia) and `config/polls_2026_extra.csv` (by hand).
+An optional `config/candidates_2026.csv` (ward, party) removes parties with no ward candidate.
 
-## Data sources
+## Automation (GitHub Actions)
 
-- Electoral Commission of South Africa (IEC) results portal: voting-district results for LGE 2016 and 2021 and NPE 2019 and 2024, and the 2026 ward to voting-district lists.
-- Municipal Demarcation Board, MDB Spatial Knowledge Hub: "MDB Wards 2026" boundaries.
-- Opinion polls (Jul–Oct 2026): Ipsos, SRF/The Common Sense, SABI Strategy Group/News24, eNCA/MarkData.
+- **Forecast:** on every change to config, code or data, and daily. Re-runs everything and commits
+  the site.
+- **Poll update:** daily. Opens a pull request when Wikipedia's poll tables change.
+- **Election night:** every 15 minutes, 4–6 November. Runs the live nowcast. `src/election_night.sh`
+  is a local backup.
 
-Bulk data lives outside OneDrive (`src/paths.py`) because on-demand sync evicts large files.
+## Data
 
-## Known limits
-
-- **By-elections not used yet.** Since 2024 the IFP has held up against MK in KZN by-elections; the
-  model leans on 2024 national results, so it probably overstates MK in IFP heartland wards.
-- **Candidates.** It doesn't check which parties field a ward candidate, and it doesn't model
-  incumbents or strong independents beyond 2021 results.
-- **New parties.** Parties with no 2021/2024 history (such as Unite for Change and Afrika Mayibuye) are in OTH.
-- **Turnout.** Uses 2021 turnout patterns. Differential turnout (such as a low 42%) can move close wards.
-- **Council control.** Municipal "majority" uses vote share above 50%, which approximates the seat formula.
+IEC results portal (results, ward lists, by-elections), MDB Spatial Knowledge Hub (2026 ward
+boundaries), and polls from Ipsos, SRF/The Common Sense, SABI/News24 and eNCA/MarkData. Bulk raw data
+lives outside the repo (`$ELECTION_DATA`, default `~/ElectionModelData`); the processed tables the model
+needs (about 10 MB) are committed in `data/interim`.
