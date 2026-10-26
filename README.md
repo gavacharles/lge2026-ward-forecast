@@ -1,6 +1,8 @@
 # LGE 2026 ward forecast (South Africa, 4 Nov 2026)
 
-Predicts the likely winner of each of the 4,485 wards (IEC delimitation for 2026) and each
+**Live map:** https://gavacharles.github.io/lge2026-ward-forecast/
+
+An independent model, not affiliated with the IEC, the Municipal Demarcation Board or any party. It predicts the likely winner of each of the 4,485 wards (IEC delimitation for 2026) and each
 municipality's party strength, with probabilities.
 
 ## Method: structure from history, levels from polls
@@ -42,7 +44,18 @@ python3 src/scrape_wards2026.py  # 2026 ward -> VD map (~20 min, resumable)
 python3 src/build_data.py
 python3 src/backtest.py
 python3 src/forecast_2026.py     # -> outputs/ward_forecast_2026.csv, municipality_forecast_2026.csv
+python3 src/fetch_boundaries.py  # MDB 2026 ward polygons (GeoJSON), then convert to TopoJSON:
+#   npx -p topojson-server geo2topo -q 1e5 wards=mdb_wards_2026.geojson | npx -p topojson-simplify toposimplify -s 1e-8 -f > wards_topo.json
+python3 src/build_site.py        # -> docs/ (GitHub Pages site)
 ```
+
+Poll inputs live in `config/polls_2026.json`; edit them and re-run the last two model steps to update.
+
+## Data sources
+
+- Electoral Commission of South Africa (IEC) results portal: voting-district results for LGE 2016 and 2021 and NPE 2019 and 2024, and the 2026 ward to voting-district lists.
+- Municipal Demarcation Board, MDB Spatial Knowledge Hub: "MDB Wards 2026" boundaries.
+- Opinion polls (Jul–Oct 2026): Ipsos, SRF/The Common Sense, SABI Strategy Group/News24, eNCA/MarkData.
 
 Bulk data lives outside OneDrive (`src/paths.py`) because on-demand sync evicts large files.
 

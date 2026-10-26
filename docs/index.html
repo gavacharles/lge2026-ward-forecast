@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LGE 2026 Ward Forecast</title>
+<meta name="description" content="An independent model forecast of who is favoured to win each of South Africa's 4,485 wards in the 4 November 2026 local government elections.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&family=Public+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <p class="eyebrow">Local government elections · 4 November 2026</p>
+    <h1>Who is favoured in your ward?</h1>
+    <p class="lede" id="lede">Loading the forecast…</p>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="tiles" id="tiles" aria-label="Wards favoured by party"></section>
+
+  <section class="mapcard" id="map-section" aria-label="Ward map">
+    <div class="mapbar">
+      <div class="seg" role="tablist" aria-label="Map view">
+        <button role="tab" data-mode="fav" aria-selected="true">Favourite</button>
+        <button role="tab" data-mode="rating" aria-selected="false">Win chance</button>
+        <button role="tab" data-mode="flip" aria-selected="false">Change since 2021</button>
+        <button role="tab" data-mode="share" aria-selected="false">Party share</button>
+      </div>
+      <select id="share-party" aria-label="Party for share view" hidden></select>
+      <div class="zoomto">
+        <select id="z-prov" aria-label="Province"></select>
+        <select id="z-muni" aria-label="Zoom to municipality"></select>
+      </div>
+    </div>
+    <div class="mapwrap">
+      <div id="map" role="application" aria-label="Map of 2026 wards"></div>
+      <aside class="panel" id="panel" aria-live="polite">
+        <p class="hint">Tap or click a ward to see its forecast.</p>
+      </aside>
+    </div>
+    <div class="legend" id="legend"></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card" id="shares">
+      <h2>National vote share, ward ballot</h2>
+      <p class="note">Forecast against the poll average and past results (%). Polls under-count independents and local parties, so their share comes from history.</p>
+      <div class="tscroll"><table id="share-table"><thead><tr><th>Party</th><th class="n">Forecast</th><th class="n">Polls</th><th class="n">2021 local</th><th class="n">2024 national</th><th class="n">Wards favoured</th></tr></thead><tbody></tbody></table></div>
+    </section>
+    <section class="card" id="metros">
+      <h2>Metros</h2>
+      <p class="note">Chance of being the largest party, and of a majority (over 50% of the vote).</p>
+      <div class="tscroll"><table id="metro-table"><thead><tr><th>Metro</th><th>Largest</th><th class="n">Chance</th><th>Majority</th><th class="n">ANC</th><th class="n">DA</th><th class="n">MK</th><th class="n">EFF</th></tr></thead><tbody></tbody></table></div>
+    </section>
+  </div>
+
+  <section class="card" id="wards">
+    <h2>All wards</h2>
+    <p class="note">Click a row to find it on the map. Column headings sort.</p>
+    <div class="controls">
+      <select id="f-prov" aria-label="Filter by province"></select>
+      <select id="f-muni" aria-label="Filter by municipality"></select>
+      <select id="f-rate" aria-label="Filter by rating"></select>
+      <input id="f-q" type="search" placeholder="Search party or municipality" aria-label="Search wards">
+    </div>
+    <div class="tscroll tall"><table id="ward-table"><thead><tr>
+      <th><button data-k="muni">Municipality</button></th>
+      <th class="n"><button data-k="n">Ward</button></th>
+      <th><button data-k="f">Favourite</button></th>
+      <th class="n"><button data-k="p">Chance</button></th>
+      <th><button data-k="r">Rating</button></th>
+      <th class="wide"><button data-k="u">Runner-up</button></th>
+      <th class="n wide"><button data-k="g">Margin</button></th>
+      <th class="wide"><button data-k="w21">2021 winner</button></th>
+    </tr></thead><tbody></tbody></table></div>
+    <p class="count" id="ward-count"></p>
+  </section>
+
+  <section class="card" id="munis">
+    <h2>All municipalities</h2>
+    <div class="controls"><input id="m-q" type="search" placeholder="Search municipality or province" aria-label="Search municipalities"></div>
+    <div class="tscroll tall"><table id="muni-table"><thead><tr>
+      <th><button data-k="name">Municipality</button></th>
+      <th class="wide"><button data-k="prov">Province</button></th>
+      <th class="n"><button data-k="wards">Wards</button></th>
+      <th><button data-k="largest">Largest</button></th>
+      <th class="n"><button data-k="pl">Chance</button></th>
+      <th><button data-k="maj">Majority</button></th>
+      <th class="n wide"><button data-k="ew0">ANC wards</button></th>
+      <th class="n wide"><button data-k="ew1">DA wards</button></th>
+      <th class="n wide"><button data-k="ew2">MK wards</button></th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <div class="grid2">
+    <section class="card" id="backtest">
+      <h2>Does the method work?</h2>
+      <p class="note">We re-ran the method as if it were 2021, using only 2019 national and 2016 local results, and counted correct ward winners. Each province was held out while fitting.</p>
+      <div id="bt"></div>
+    </section>
+    <section class="card prose" id="method">
+      <h2>How the forecast works</h2>
+      <ol>
+        <li><b>New wards.</b> The IEC lists the voting districts inside each 2026 ward (Municipal Demarcation Board boundaries). Past results for those voting districts are added up inside the new wards.</li>
+        <li><b>History.</b> For each party, a model links a ward's 2024 national-ballot share and its 2021 local ward-ballot share to the next local result. MK's share of the old ANC local vote follows each ward's 2024 ANC/MK split.</li>
+        <li><b>Polls.</b> Each party's overall level is set to the July–October 2026 poll average. Metros with their own polls are pulled towards them.</li>
+        <li><b>Uncertainty.</b> 2,000 simulations add poll error and municipal and ward-level surprises, sized from the 2021 test. A ward's chance is how often each party won it.</li>
+      </ol>
+      <h3>What it doesn't know</h3>
+      <ul>
+        <li>By-elections since 2024. The IFP has done well against MK in KwaZulu-Natal by-elections, so MK may be overstated in IFP areas.</li>
+        <li>Who is standing. It doesn't check ward candidate lists, incumbents or strong independents beyond their 2021 results.</li>
+        <li>Turnout. It uses 2021 turnout patterns; a low or uneven turnout can move close wards.</li>
+        <li>New parties without a 2021 or 2024 result are counted with "Other".</li>
+      </ul>
+    </section>
+  </div>
+
+  <footer class="foot">
+    <p><b>Independent model, not an official result.</b> Not affiliated with the IEC, the Municipal Demarcation Board or any party. Forecasts are probabilities, and the less likely outcome will happen in some wards.</p>
+    <p>Data: Electoral Commission of South Africa results (2016, 2019, 2021, 2024) and 2026 voting-district lists; Municipal Demarcation Board 2026 ward boundaries (MDB Spatial Knowledge Hub); polls from Ipsos, SRF/The Common Sense, SABI Strategy Group/News24 and eNCA/MarkData. Basemap © Esri, HERE, Garmin and OpenStreetMap contributors.</p>
+    <p id="generated"></p>
+  </footer>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
