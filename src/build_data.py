@@ -1,7 +1,8 @@
 """Turn raw IEC downloads into tidy voting-district (VD) level tables.
 
 Output: $ELECTION_DATA/interim/vd_votes.parquet with one row per (election, vd, party_group)
-and interim/vd_meta.parquet with VD -> municipality / 2016 & 2021 ward.
+and interim/vd_meta.parquet with VD -> municipality / ward (local elections) / registered voters.
+Elections: LGE 2011, 2016, 2021 (ward + PR ballots) and NPE 2014, 2019, 2024 (national ballot).
 """
 import pandas as pd
 
@@ -12,6 +13,7 @@ PROVS = ["EC", "FS", "GP", "KN", "NP", "MP", "NW", "NC", "WP"]
 PARTY_GROUPS = {
     "AFRICAN NATIONAL CONGRESS": "ANC",
     "DEMOCRATIC ALLIANCE": "DA",
+    "DEMOCRATIC ALLIANCE/DEMOKRATIESE ALLIANSIE": "DA",
     "UMKHONTO WESIZWE": "MK",
     "UMKHONTO WESIZWE PARTY": "MK",
     "ECONOMIC FREEDOM FIGHTERS": "EFF",
@@ -32,10 +34,17 @@ def muni_code(s):
     return s.str.split(" - ").str[0].str.strip()
 
 
+def encoding_of(path):
+    head = open(path, "rb").read(2)
+    return "utf-16" if head in (b"\xff\xfe", b"\xfe\xff") else "utf-8-sig"
+
+
 def load_lge(folder, election):
     frames = []
     for pr in PROVS:
-        d = pd.read_csv(RAW / folder / f"{pr}.csv", encoding="utf-8-sig", low_memory=False)
+        f = RAW / folder / f"{pr}.csv"
+        d = pd.read_csv(f, encoding=encoding_of(f), low_memory=False)
+        d.columns = [c.strip() for c in d.columns]
         frames.append(d)
     d = pd.concat(frames, ignore_index=True)
     d = d[d.BallotType.isin(["Ward", "PR"])]
@@ -68,9 +77,28 @@ def load_npe(path, election, cols, encoding="utf-8-sig"):
     })
 
 
+def load_npe2014(path):
+    """2014's export repeats a 'Generated' column and has a stray header row; columns by position."""
+    d = pd.read_csv(path, encoding="utf-8-sig", low_memory=False, skiprows=[1], header=0,
+                    names=["gen", "prov", "muni", "vd", "vs", "reg", "spoilt", "valid", "party", "votes"])
+    d = d[d.party.notna() & (d.prov != "Province")]
+    return pd.DataFrame({
+        "election": "npe2014",
+        "vd": d.vd.astype(str),
+        "muni": muni_code(d.muni),
+        "ward": None,
+        "registered": d.reg,
+        "party": d.party.map(group),
+        "party_name": d.party.str.upper().str.split().str.join(" "),
+        "votes": d.votes,
+    })
+
+
 def main():
     INTERIM.mkdir(parents=True, exist_ok=True)
     parts = [
+        load_lge("lge2011", "lge2011"),
+        load_npe2014(RAW / "npe2014" / "National.csv"),
         load_lge("lge2016", "lge2016"),
         load_lge("lge2021", "lge2021"),
         load_npe(RAW / "npe2019" / "699.csv", "npe2019",

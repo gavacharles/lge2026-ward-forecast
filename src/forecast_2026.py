@@ -1,19 +1,27 @@
-"""Forecast LGE 2026 (4 Nov 2026) ward winners and municipal party strength.
+"""Forecast LGE 2026 (4 Nov 2026) ward winners, municipal vote shares and council seats.
 
-Inputs: 2026 ward->VD delimitation (scrape_wards2026.py), 2024 NPE and 2021 LGE results
-(build_data.py), backtest error sizes/coefficients (backtest.py), polls (config/polls_2026.json).
+Inputs: 2026 ward->VD delimitation (scrape_wards2026.py), VD results 2021 LGE and 2024 NPE
+(build_data.py), by-elections since the 2024 election (scrape_byelections.py), backtest
+coefficients and error sizes (backtest.py), polls (config/polls_2026.csv via polls.py), coalition
+blocs (config/coalitions.json) and, if present, ward candidate lists (config/candidates_2026.csv).
 """
 import json
+import sys
 
 import numpy as np
 import pandas as pd
 
+import byelections as BE
 import model as M
+import polls as POLLS
+from community import CommunityTypes
 from paths import CONFIG, INTERIM, OUTPUTS
 
 PARTIES = M.MAJORS
 COLS = PARTIES + ["OTH"]
-NEW_OR_UNSTABLE = {"MK", "ASA", "PA"}  # too little 2016-2021 history: use pooled coefficients
+NEW_OR_UNSTABLE = {"MK", "ASA", "PA"}  # too little 2011-2021 history: use pooled coefficients
+BYELECTION_SINCE = "2024-05-30"        # MK era: compare with the 2024 national ballot
+MAX_SD_LOG = 0.5
 
 
 def aggregate_all(S, weight, mask=None):
@@ -33,13 +41,29 @@ def poll_targets(shares_pct, current):
     return {p: v / total * room for p, v in listed.items()}
 
 
-def main(n_sims=2000):
+def apply_candidates(S, wards):
+    """Drop parties with no ward candidate, if a candidate list is available (ward, party)."""
+    f = CONFIG / "candidates_2026.csv"
+    if not f.exists():
+        return S, False
+    c = pd.read_csv(f, dtype=str)
+    standing = c.assign(on=1).pivot_table(index="ward", columns="party", values="on", aggfunc="max", fill_value=0)
+    standing = standing.reindex(index=S.index, columns=PARTIES).fillna(1)  # unknown ward: assume all stand
+    S = S.copy()
+    S[PARTIES] = S[PARTIES].values * standing.values
+    return S.div(S.sum(axis=1), axis=0), True
+
+
+def main(n_sims=2000, as_of=None):
     votes, other = M.load()
-    polls = json.load(open(CONFIG / "polls_2026.json"))
-    bt = json.load(open(OUTPUTS / "backtest_2021.json"))["params"]
+    poll = POLLS.aggregate(as_of)
+    bt = json.load(open(OUTPUTS / "backtest.json"))["params"]
+    blocs = json.load(open(CONFIG / "coalitions.json"))
+    meta = pd.read_parquet(INTERIM / "vd_meta.parquet")
 
     map26 = pd.read_csv(INTERIM / "wards2026_vd.csv", dtype=str)
     wards = map26.drop_duplicates("ward").set_index("ward")[["province", "municipality", "muni"]]
+    prov = wards.muni.map(BE.province_of)
 
     X_npe, npe_tot, cov_npe = M.ward_table(votes, "npe2024", map26, PARTIES)
     X_lge, lge_tot, cov_lge = M.ward_table(votes, "lge2021_ward", map26, PARTIES)
@@ -57,40 +81,69 @@ def main(n_sims=2000):
     weight = lge_tot.where(lge_tot > 0, npe_tot * lge_npe)
     weight = weight.where(weight > 0, weight[weight > 0].median())
 
+    # 1) structural model (coefficients pooled over the 2016 and 2021 backtests)
     sm = M.StructuralModel()
     sm.pooled = np.array(bt["pooled"])
     sm.coef = {p: np.array(c) for p, c in bt["coef"].items() if p not in NEW_OR_UNSTABLE}
     S = sm.predict(X_npe, X_lge_adj, COLS)
 
-    # 1) national level from polls (named parties; OTH keeps its modelled level)
-    nat = poll_targets(polls["national"], aggregate_all(S, weight))
+    # 2) local swing from by-elections since the 2024 election, by province and community type
+    comm = CommunityTypes().fit(votes, "npe2024")
+    ward_comm = comm.assign(votes, "npe2024", map26[["vd"]].assign(key=map26.ward))
+    vd_muni = meta[meta.election == "npe2024"][["vd", "muni"]]
+    resid = BE.residuals("1091", BYELECTION_SINCE, votes, "npe2024", PARTIES, comm, vd_muni)
+    pe, ce = BE.effects(resid, bt["k_shrink"])
+    adj = BE.ward_adjustment(prov, ward_comm, pe, ce, PARTIES, bt["alpha"])
+    S = S * adj[COLS].values
+    S = S.div(S.sum(axis=1), axis=0)
+
+    # 3) who is standing (optional input)
+    S, used_candidates = apply_candidates(S, wards)
+
+    # 4) national level from polls. Independents and local parties (OTH) are under-measured by
+    #    polls, so they hold their 2021 ward-ballot level in the 2026 wards (persistence); the
+    #    polled parties share the rest in poll proportions.
+    oth_2021 = float((X_lge.OTH * weight).sum() / weight.sum())
+    cur = aggregate_all(S, weight)
+    cur["OTH"] = oth_2021
+    nat = poll_targets(poll["national"], cur)
+    nat["OTH"] = oth_2021
     S = M.calibrate(S, weight, nat, COLS)
 
-    # 2) metros: move towards metro polls by their weight
+    # 5) metros: move towards metro polls by their weight
     is_metro = np.zeros(len(S), bool)
     muni_scale = {}
-    for code, mp in polls["metros"].items():
+    for code, mp in poll["metros"].items():
         msk = (wards.muni == code).values
         if not msk.any():
             continue
         is_metro |= msk
         cur = aggregate_all(S, weight, msk)
         w = mp["weight"]
-        poll = poll_targets(mp["shares"], cur)
-        tgt = {p: float(np.exp(w * np.log(v) + (1 - w) * np.log(max(cur[p], 1e-6)))) for p, v in poll.items()}
+        pt = poll_targets(mp["shares"], cur)
+        tgt = {p: float(np.exp(w * np.log(v) + (1 - w) * np.log(max(cur[p], 1e-6)))) for p, v in pt.items()}
         S = M.calibrate(S, weight, tgt, COLS, mask=msk)
-        muni_scale[code] = 1 - 0.4 * w
+        muni_scale[code] = 1 - 0.5 * w
 
-    # 3) everything outside polled metros absorbs the rest of the national target
+    # 6) everything outside polled metros absorbs the rest of the national target
     W = weight.values
     metro_votes = (S.values[is_metro] * W[is_metro, None]).sum(0)
     rest_w = W[~is_metro].sum()
     rest_tgt = {p: max((nat[p] * W.sum() - metro_votes[COLS.index(p)]) / rest_w, 0.001) for p in nat}
     S = M.calibrate(S, weight, rest_tgt, COLS, mask=~is_metro)
 
-    probs, mstats = M.simulate(S, weight, wards.muni, prev_local, polls["national_sd_logit"],
-                               bt["sd_muni"], bt["sd_ward"], n=n_sims,
-                               muni_sd_scale=pd.Series(muni_scale))
+    # 7) simulate: poll error per party, municipal and ward surprises, differential turnout, seats
+    sd_nat = np.array([min(poll["national_sd_pts"].get(p, POLLS.HIST_ERR) / max(poll["national"].get(p, 2.0), 2.0),
+                           MAX_SD_LOG) if p != "OTH" else 0.15 for p in COLS])
+    reg = (meta[meta.election == "lge2021_ward"][["vd", "registered"]]
+           .merge(map26[["vd", "ward"]], on="vd").groupby("ward").registered.sum())
+    turnout = (lge_tot / reg.reindex(lge_tot.index)).clip(0.05, 1).fillna(lge_tot.sum() / reg.sum())
+    tbeta = M.turnout_betas(X_lge_adj, turnout, weight)
+    council_seats = wards.groupby("muni").size() * 2
+    probs, mstats = M.simulate(S, weight, wards.muni, prev_local, sd_nat, bt["sd_muni"], bt["sd_ward"],
+                               n=n_sims, muni_sd_scale=pd.Series(muni_scale), turnout_beta=tbeta,
+                               sd_turnout=bt["sd_turnout"], council_seats=council_seats, blocs=blocs)
+
     win = M.winners(S, prev_local)
     local_name = prev_local.local_name.reindex(S.index).fillna("OTHER")
     named = probs.rename(columns={"LOCAL": "LOCAL_TOP"})
@@ -107,42 +160,63 @@ def main(n_sims=2000):
     out["local_top_party_2021"] = local_name
     out["favourite"] = fav
     out["win_prob"] = p_win.round(3)
-    out["runner_up"] = win.runner_up
+    second = pd.Series(np.array(named.columns)[np.argsort(-named.values, axis=1)[:, 1]], index=named.index)
+    out["runner_up"] = second.where(second != "LOCAL_TOP", local_name)
     out["margin_pts"] = (win.margin * 100).round(1)
     out["winner_2021_est"] = prev_winner
     out["flip"] = out.favourite != out.winner_2021_est
     out["rating"] = pd.cut(out.win_prob, [0, .6, .75, .9, 1.01], labels=["Toss-up", "Lean", "Likely", "Safe"])
+    out["community"] = ward_comm.reindex(out.index).map(dict(enumerate(comm.labels)))
     out["expected_votes"] = weight.round(0)
     out["history_coverage"] = ((cov_npe + cov_lge) / 2).round(2)
     out = out.reset_index().sort_values(["province", "muni", "ward"])
 
-    ms = mstats["share"].mul(100).round(1).add_prefix("share_")
-    ml = mstats["p_largest"].round(3).add_prefix("p_largest_")
-    mm = mstats["p_majority"].round(3).add_prefix("p_majority_")
     names = wards.drop_duplicates("muni").set_index("muni")[["province", "municipality"]]
-    exp_w = named.groupby(wards.muni.values).sum().round(1).add_prefix("exp_wards_")
-    muni = names.join([ms, ml, mm, exp_w])
+    muni = names.join([
+        mstats["share"].mul(100).round(1).add_prefix("share_"),
+        mstats["seats"].round(1).add_prefix("seats_"),
+        mstats["p_largest_seats"].round(3).add_prefix("p_largest_"),
+        mstats["p_majority_seats"].round(3).add_prefix("p_majority_"),
+        mstats["p_bloc_majority"].round(3).add_prefix("p_bloc_"),
+        named.groupby(wards.muni.values).sum().round(1).add_prefix("exp_wards_"),
+    ])
     muni["n_wards"] = wards.groupby("muni").size()
-    muni["largest_party"] = mstats["p_largest"].idxmax(axis=1)
-    muni["p_largest"] = mstats["p_largest"].max(axis=1).round(3)
-    maj = mstats["p_majority"]
+    muni["council_seats"] = council_seats
+    pls = mstats["p_largest_seats"]
+    muni["largest_party"] = pls.idxmax(axis=1)
+    muni["p_largest"] = pls.max(axis=1).round(3)
+    maj = mstats["p_majority_seats"]
     muni["majority_party"] = maj.idxmax(axis=1).where(maj.max(axis=1) > 0.5, "Hung (no majority)")
     muni["p_majority"] = maj.max(axis=1).round(3)
+    muni["p_hung"] = (1 - maj.sum(axis=1)).clip(0, 1).round(3)
     muni = muni.reset_index().rename(columns={"index": "muni"})
 
     OUTPUTS.mkdir(exist_ok=True)
     out.to_csv(OUTPUTS / "ward_forecast_2026.csv", index=False)
     muni.to_csv(OUTPUTS / "municipality_forecast_2026.csv", index=False)
+    resid.to_csv(OUTPUTS / "byelection_residuals_2026.csv", index=False)
+    nat_out = (S.mul(weight, axis=0).sum() / weight.sum() * 100).round(2)
+    summary = {
+        "as_of": poll["as_of"], "national_share": nat_out.to_dict(), "polls": poll,
+        "national_sd_log": dict(zip(COLS, np.round(sd_nat, 3).tolist())),
+        "turnout_beta": tbeta.round(3).to_dict(), "byelections_used": int(resid.groupby(["date", "ward"]).ngroups),
+        "byelection_province_effects": pe.round(3).unstack().fillna(0).to_dict(orient="index"),
+        "communities": comm.labels, "used_candidate_list": used_candidates,
+        "wards": int(len(out)), "favourites": out.favourite.value_counts().to_dict(),
+        "expected_wards": named.sum().round(1).to_dict(), "ratings": out.rating.value_counts().to_dict(),
+        "flips": int(out.flip.sum()),
+    }
+    json.dump(summary, open(OUTPUTS / "forecast_summary_2026.json", "w"), indent=1, default=str)
 
-    nat_out = (S.mul(weight, axis=0).sum() / weight.sum() * 100).round(1)
-    print("National (ward ballot) %:", nat_out.to_dict())
-    print("Wards:", len(out), "| favourites:", out.favourite.value_counts().head(12).to_dict())
-    print("Expected wards (sum of probs):", named.sum().round(0).to_dict())
+    print("National (ward ballot) %:", nat_out.round(1).to_dict())
+    print("Favourites:", out.favourite.value_counts().head(10).to_dict())
     print("Ratings:", out.rating.value_counts().to_dict(), "| flips vs 2021:", int(out.flip.sum()))
-    print(muni[muni.muni.isin(list(polls["metros"]))][["muni", "largest_party", "p_largest", "majority_party",
-                                                       "p_majority", "share_ANC", "share_DA", "share_MK",
-                                                       "share_EFF"]].to_string(index=False))
+    print("By-elections used:", summary["byelections_used"], "| turnout betas:", tbeta.round(2).to_dict())
+    cols = ["muni", "largest_party", "p_largest", "majority_party", "p_majority", "seats_ANC", "seats_DA",
+            "seats_MK", "seats_EFF", "council_seats"] + [f"p_bloc_{b}" for b in blocs]
+    print(muni[muni.muni.isin(list(poll["metros"]))][cols].to_string(index=False))
+    print(pd.crosstab(out.province, out.favourite).loc[:, lambda x: x.sum() > 20])
 
 
 if __name__ == "__main__":
-    main()
+    main(*(sys.argv[1:2] and [int(sys.argv[1])]))

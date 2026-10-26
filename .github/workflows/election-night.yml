@@ -1,0 +1,36 @@
+name: Election night
+
+# Every 15 minutes from 4 to 6 November (UTC), pull the IEC's published 2026 results and update
+# ward calls on the site. GitHub can delay scheduled runs; src/election_night.sh is a local backup.
+on:
+  schedule:
+    - cron: "*/15 * 4-6 11 *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-update
+  cancel-in-progress: false
+
+jobs:
+  nowcast:
+    runs-on: ubuntu-latest
+    env:
+      ELECTION_DATA: ${{ github.workspace }}/data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python src/nowcast.py live
+      - run: python src/build_site.py
+      - name: Commit live update
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add outputs docs
+          git diff --cached --quiet || (git commit -m "Live count update ($(date -u +%H:%M) UTC)" && git pull --rebase && git push)

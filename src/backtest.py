@@ -1,34 +1,36 @@
-"""Backtest: forecast the 2021 LGE ward winners from 2019 NPE + 2016 LGE.
+"""Backtests: forecast the 2016 and 2021 LGE ward winners as if it were the eve of each election.
 
-Mirrors the 2026 setup (latest national election + previous local election).
-Coefficients are fit leave-one-province-out; party levels are calibrated to the actual
-2021 national result (i.e. assumes accurate national polls) - the 'perfect poll' upper
-bound is reported next to naive baselines. Also estimates error sizes for the simulation.
+Each cycle mirrors the 2026 setup:
+  2021 <- 2019 national ballot + 2016 local ward ballot + by-elections May 2019 - Oct 2021
+  2016 <- 2014 national ballot + 2011 local ward ballot + by-elections May 2014 - Jul 2016
+Coefficients are fit leave-one-province-out. Party levels are calibrated to the actual national
+result (i.e. assumes accurate national polls). The by-election adjustment settings (ALPHA, K) are
+tuned across both cycles; error sizes and pooled coefficients for 2026 are saved.
 """
+import itertools
 import json
 
 import numpy as np
 import pandas as pd
 
+import byelections as BE
 import model as M
+from community import CommunityTypes
 from paths import INTERIM, OUTPUTS
 
-PARTIES = ["ANC", "DA", "EFF", "IFP", "PA", "FFP"]  # ActionSA (new in 2021) folds into OTH
-METRO_PROV = {"BUF": "EC", "NMA": "EC", "MAN": "FS", "EKU": "GT", "JHB": "GT", "TSH": "GT",
-              "ETH": "KZN", "CPT": "WC"}
-
-
-def province(muni):
-    if muni in METRO_PROV:
-        return METRO_PROV[muni]
-    for pre in ("KZN", "LIM", "EC", "FS", "GT", "MP", "NW", "NC", "WC", "DC"):
-        if muni.startswith(pre):
-            return pre
-    return "?"
+CYCLES = {
+    "2021": dict(target="lge2021_ward", npe="npe2019", prev="lge2016_ward", term="402", since="2019-05-09",
+                 parties=["ANC", "DA", "EFF", "IFP", "PA", "FFP"]),
+    "2016": dict(target="lge2016_ward", npe="npe2014", prev="lge2011_ward", term="197", since="2014-05-08",
+                 parties=["ANC", "DA", "EFF", "IFP", "FFP"]),
+}
+ALPHAS = [0.0, 0.25, 0.5, 0.75, 1.0]
+KS = [5, 10, 20, 40]
+METROS = ["BUF", "NMA", "MAN", "EKU", "JHB", "TSH", "ETH", "CPT"]
 
 
 def robust_sd(x):
-    x = np.asarray(x)
+    x = np.asarray(x, float)
     x = x[np.isfinite(x)]
     return float(1.4826 * np.median(np.abs(x - np.median(x))))
 
@@ -41,84 +43,155 @@ def label_actual(Y, actual_local):
     return win.where(win != "LOCAL", names)
 
 
+def prepare(name, cfg, votes, other, meta):
+    mapping = meta[meta.election == cfg["target"]][["vd", "ward", "muni"]].dropna()
+    wards = mapping.drop_duplicates("ward").set_index("ward")
+    prov = wards.muni.map(BE.province_of)
+    P = cfg["parties"]
+    cols = P + ["OTH"]
+    X_npe, _, _ = M.ward_table(votes, cfg["npe"], mapping, P)
+    X_lge, prev_tot, _ = M.ward_table(votes, cfg["prev"], mapping, P)
+    Y, _, _ = M.ward_table(votes, cfg["target"], mapping, P)
+    weight = prev_tot.where(prev_tot > 0, prev_tot[prev_tot > 0].median())
+
+    comm = CommunityTypes().fit(votes, cfg["npe"])
+    ward_comm = comm.assign(votes, cfg["npe"], mapping[["vd"]].assign(key=mapping.ward))
+    vd_muni = meta[meta.election == cfg["npe"]][["vd", "muni"]]
+    resid = BE.residuals(cfg["term"], cfg["since"], votes, cfg["npe"], P, comm, vd_muni)
+
+    S0 = pd.DataFrame(index=Y.index, columns=cols, dtype=float)
+    for pv in prov.unique():
+        tr, te = (prov != pv).values, (prov == pv).values
+        sm = M.StructuralModel().fit(X_npe[tr], X_lge[tr], Y[tr], weight[tr], cols)
+        S0.loc[te] = sm.predict(X_npe[te], X_lge[te], cols).values
+
+    reg = (meta[meta.election == cfg["prev"]][["vd", "registered"]]
+           .merge(mapping[["vd", "ward"]], on="vd").groupby("ward").registered.sum())
+    turnout = (prev_tot / reg.reindex(prev_tot.index)).clip(0.05, 1).fillna(prev_tot.sum() / reg.sum())
+    return dict(
+        name=name, cfg=cfg, mapping=mapping, wards=wards, prov=prov, cols=cols, X_npe=X_npe, X_lge=X_lge,
+        Y=Y, weight=weight, comm=comm, ward_comm=ward_comm, resid=resid, S0=S0, turnout=turnout,
+        national=Y.mul(weight, axis=0).sum() / weight.sum(),
+        local_prev=M.top_other(other, cfg["prev"], mapping),
+        actual=label_actual(Y, M.top_other(other, cfg["target"], mapping)),
+    )
+
+
+def forecast_variant(c, alpha, k):
+    S = c["S0"]
+    if alpha > 0:
+        pe, ce = BE.effects(c["resid"], k)
+        adj = BE.ward_adjustment(c["prov"], c["ward_comm"], pe, ce, c["cfg"]["parties"], alpha)
+        S = S * adj[S.columns].values
+        S = S.div(S.sum(axis=1), axis=0)
+    return M.calibrate(S, c["weight"], {p: c["national"][p] for p in c["cfg"]["parties"]}, c["cols"])
+
+
+def accuracy(c, S, mask=None):
+    pred = M.winners(S, c["local_prev"]).winner
+    ok = pred == c["actual"]
+    return float(ok[mask].mean() if mask is not None else ok.mean())
+
+
 def main():
     votes, other = M.load()
     meta = pd.read_parquet(INTERIM / "vd_meta.parquet")
-    map21 = meta[meta.election == "lge2021_ward"][["vd", "ward", "muni"]].dropna()
-    wards = map21.drop_duplicates("ward").set_index("ward")
-    prov = wards.muni.map(province)
+    cycles = {n: prepare(n, cfg, votes, other, meta) for n, cfg in CYCLES.items()}
 
-    X_npe, _, cov_npe = M.ward_table(votes, "npe2019", map21, PARTIES)
-    X_lge, prev_tot, cov_lge = M.ward_table(votes, "lge2016_ward", map21, PARTIES)
-    Y, _, _ = M.ward_table(votes, "lge2021_ward", map21, PARTIES)
-    weight = prev_tot.where(prev_tot > 0, prev_tot[prev_tot > 0].median())
-    cols = PARTIES + ["OTH"]
+    # tune the by-election adjustment across both cycles
+    grid = []
+    for a, k in itertools.product(ALPHAS, KS):
+        accs = [accuracy(c, forecast_variant(c, a, k)) for c in cycles.values()]
+        grid.append((a, k, *accs, float(np.mean(accs))))
+    grid = pd.DataFrame(grid, columns=["alpha", "k", *[f"acc_{n}" for n in cycles], "mean"])
+    best = grid.sort_values(["mean", "alpha"], ascending=[False, True]).iloc[0]
+    alpha, k = float(best.alpha), int(best.k)
 
-    # leave-one-province-out structural predictions
-    S0 = pd.DataFrame(index=Y.index, columns=cols, dtype=float)
-    for pv in prov.unique():
-        tr, te = prov != pv, prov == pv
-        sm = M.StructuralModel().fit(X_npe[tr], X_lge[tr], Y[tr], weight[tr], cols)
-        S0.loc[te] = sm.predict(X_npe[te], X_lge[te], cols).values
-    full = M.StructuralModel().fit(X_npe, X_lge, Y, weight, cols)
+    results, sd_m, sd_w, cal_rows = {}, [], [], []
+    for n, c in cycles.items():
+        S1 = forecast_variant(c, 0.0, k)
+        S2 = forecast_variant(c, alpha, k)
+        S3 = S2.copy()
+        for pv in c["prov"].unique():
+            msk = (c["prov"] == pv).values
+            tgt = c["Y"][msk].mul(c["weight"][msk], axis=0).sum() / c["weight"][msk].sum()
+            S3 = M.calibrate(S3, c["weight"], {p: tgt[p] for p in c["cfg"]["parties"]}, c["cols"], mask=msk)
+        metro = c["wards"].muni.isin(METROS).values
+        kzn = (c["prov"] == "KZN").values
+        r = {
+            "wards": int(len(c["Y"])),
+            "byelections_used": int(c["resid"].groupby(["date", "ward"]).ngroups),
+            "naive_prev_lge": accuracy(c, c["X_lge"]),
+            "naive_npe": accuracy(c, c["X_npe"]),
+            "model": accuracy(c, S1),
+            "model_byelections": accuracy(c, S2),
+            "model_byelections_metros": accuracy(c, S2, metro),
+            "model_byelections_non_metros": accuracy(c, S2, ~metro),
+            "model_byelections_kzn": accuracy(c, S2, kzn),
+            "model_kzn": accuracy(c, S1, kzn),
+            "upper_bound_provincial_polls": accuracy(c, S3),
+            "mae_share_pts": float((S2 - c["Y"]).abs()[c["cfg"]["parties"]].mean().mean() * 100),
+        }
+        agg_pred = M.aggregate(S2, c["weight"], c["wards"].muni)
+        agg_act = M.aggregate(c["Y"], c["weight"], c["wards"].muni)
+        e_m = np.log(agg_act / agg_pred).where(agg_act > 0.03)
+        e_w = (np.log(c["Y"] / S2) - e_m.reindex(c["wards"].muni).set_index(c["Y"].index)).where(c["Y"] > 0.03)
+        sd_m.append(robust_sd(e_m.values.ravel()))
+        sd_w.append(robust_sd(e_w.values.ravel()))
+        c["S2"] = S2
+        results[n] = r
 
-    national = (Y.mul(weight, axis=0).sum() / weight.sum())
-    S1 = M.calibrate(S0, weight, {p: national[p] for p in PARTIES}, cols)
+    sd_muni, sd_ward = float(np.mean(sd_m)), float(np.mean(sd_w))
+    tb_all = []
+    for n, c in cycles.items():
+        tb = M.turnout_betas(c["X_lge"], c["turnout"], c["weight"])
+        tb_all.append(tb)
+        probs, _ = M.simulate(c["S2"], c["weight"], c["wards"].muni, c["local_prev"], 0.0, sd_muni, sd_ward,
+                              n=400, turnout_beta=tb, sd_turnout=0.25)
+        lab = c["actual"].copy()
+        is_local = ~lab.isin(c["cols"])
+        lab[is_local & (lab == c["local_prev"].local_name.reindex(lab.index))] = "LOCAL"
+        p_actual = np.array([probs.at[w, l] if l in probs.columns else 0.0 for w, l in lab.items()])
+        p_top = probs.max(axis=1)
+        hit = probs.idxmax(axis=1) == lab
+        results[n]["brier"] = float(((1 - p_actual) ** 2).mean())
+        results[n]["log_loss"] = float(-np.log(np.clip(p_actual, 1e-3, 1)).mean())
+        bins = pd.cut(p_top, [0, .5, .6, .7, .8, .9, .95, 1.0001])
+        cal = pd.DataFrame({"pred": p_top, "hit": hit}).groupby(bins, observed=True).agg(
+            n=("hit", "size"), mean_pred=("pred", "mean"), observed=("hit", "mean")).reset_index()
+        cal["cycle"] = n
+        cal_rows.append(cal)
 
-    # 'perfect provincial polls' variant
-    S2 = S1.copy()
-    for pv in prov.unique():
-        msk = (prov == pv).values
-        tgt = Y[msk].mul(weight[msk], axis=0).sum() / weight[msk].sum()
-        S2 = M.calibrate(S2, weight, {p: tgt[p] for p in PARTIES}, cols, mask=msk)
+    # pooled coefficients for 2026 (all parties seen in either cycle)
+    coef = {}
+    for p in ["ANC", "DA", "EFF", "IFP", "PA", "FFP", "OTH"]:
+        Xs, Ls, Ys, Ws = [], [], [], []
+        for c in cycles.values():
+            if p in c["cols"]:
+                Xs.append(c["X_npe"][p]); Ls.append(c["X_lge"][p]); Ys.append(c["Y"][p]); Ws.append(c["weight"])
+        sm = M.StructuralModel().fit(pd.concat(Xs).to_frame(p), pd.concat(Ls).to_frame(p),
+                                     pd.concat(Ys).to_frame(p), pd.concat(Ws), [p])
+        coef[p] = sm.coef[p].tolist()
+    allp = [p for p in ["ANC", "DA", "EFF", "IFP", "FFP", "OTH"]]
+    X = pd.concat([c["X_npe"][allp] for c in cycles.values()], ignore_index=True)
+    L = pd.concat([c["X_lge"][allp] for c in cycles.values()], ignore_index=True)
+    Yy = pd.concat([c["Y"][allp] for c in cycles.values()], ignore_index=True)
+    W = pd.concat([c["weight"] for c in cycles.values()], ignore_index=True)
+    pooled = M.StructuralModel().fit(X, L, Yy, W, allp).pooled.tolist()
 
-    local_prev = M.top_other(other, "lge2016_ward", map21)
-    local_act = M.top_other(other, "lge2021_ward", map21)
-    actual = label_actual(Y, local_act)
-
-    res = {}
-    for name, S in [("naive_2016_lge", X_lge), ("naive_2019_npe", X_npe),
-                    ("model_national_poll", S1), ("model_provincial_poll", S2)]:
-        pred = M.winners(S, local_prev).winner
-        res[name] = float((pred == actual).mean())
-    metro = wards.muni.isin(METRO_PROV).values
-    pred1 = M.winners(S1, local_prev).winner
-    res["model_national_poll_metros"] = float((pred1[metro] == actual[metro]).mean())
-    res["model_national_poll_non_metros"] = float((pred1[~metro] == actual[~metro]).mean())
-    res["mae_share_pts"] = float((S1 - Y).abs()[PARTIES].mean().mean() * 100)
-
-    # error sizes in log-share space (only where a party is a real contender)
-    agg_pred = M.aggregate(S1, weight, wards.muni)
-    agg_act = M.aggregate(Y, weight, wards.muni)
-    e_m = np.log(agg_act / agg_pred).where(agg_act > 0.03)
-    sd_muni = robust_sd(e_m.values.ravel())
-    e_w = (np.log(Y / S1) - e_m.reindex(wards.muni).set_index(Y.index)).where(Y > 0.03)
-    sd_ward = robust_sd(e_w.values.ravel())
-
-    # probability calibration of the simulation (national error = 0: levels were calibrated)
-    probs, _ = M.simulate(S1, weight, wards.muni, local_prev, 0.0, sd_muni, sd_ward, n=400)
-    p_lab = probs.copy()
-    lab = actual.copy()
-    is_local = ~actual.isin(cols)
-    lab[is_local & (actual == local_prev.local_name.reindex(actual.index))] = "LOCAL"
-    p_actual = np.array([p_lab.loc[w, l] if l in p_lab.columns else 0.0 for w, l in lab.items()])
-    p_top = probs.max(axis=1)
-    hit = (probs.idxmax(axis=1) == lab)
-    bins = pd.cut(p_top, [0, .5, .6, .7, .8, .9, .95, 1.0001])
-    calib = pd.DataFrame({"pred": p_top, "hit": hit}).groupby(bins, observed=True).agg(
-        n=("hit", "size"), mean_pred=("pred", "mean"), observed=("hit", "mean"))
-    res["brier_winner"] = float(((1 - p_actual) ** 2).mean())
-    res["log_loss_winner"] = float(-np.log(np.clip(p_actual, 1e-3, 1)).mean())
-
-    params = {"sd_muni": sd_muni, "sd_ward": sd_ward,
-              "coef": {p: full.coef[p].tolist() for p in cols}, "pooled": full.pooled.tolist(),
-              "coverage_npe2019": float(cov_npe.mean()), "coverage_lge2016": float(cov_lge.mean())}
+    out = {
+        "results": results,
+        "tuning": grid.round(4).to_dict(orient="records"),
+        "params": {"alpha": alpha, "k_shrink": k, "sd_muni": sd_muni, "sd_ward": sd_ward,
+                   "sd_turnout": 0.25, "coef": coef, "pooled": pooled},
+        "communities": {n: c["comm"].labels for n, c in cycles.items()},
+    }
     OUTPUTS.mkdir(exist_ok=True)
-    json.dump({"metrics": res, "params": params}, open(OUTPUTS / "backtest_2021.json", "w"), indent=2)
-    calib.to_csv(OUTPUTS / "backtest_2021_calibration.csv")
-    print(json.dumps(res, indent=2))
-    print(json.dumps(params, indent=2))
-    print(calib)
+    json.dump(out, open(OUTPUTS / "backtest.json", "w"), indent=1)
+    pd.concat(cal_rows).to_csv(OUTPUTS / "backtest_calibration.csv", index=False)
+    print(json.dumps(results, indent=1))
+    print(grid.sort_values("mean", ascending=False).head(8).to_string(index=False))
+    print("alpha", alpha, "k", k, "sd_muni", round(sd_muni, 3), "sd_ward", round(sd_ward, 3))
 
 
 if __name__ == "__main__":

@@ -1,0 +1,8 @@
+{
+  "ANC+EFF": ["ANC", "EFF"],
+  "ANC+MK+EFF": ["ANC", "MK", "EFF"],
+  "ANC+DA": ["ANC", "DA"],
+  "DA+FFP+ASA+IFP": ["DA", "FFP", "ASA", "IFP"],
+  "MK+EFF": ["MK", "EFF"],
+  "ANC+DA+IFP": ["ANC", "DA", "IFP"]
+}

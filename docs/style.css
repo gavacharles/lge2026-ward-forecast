@@ -35,6 +35,8 @@ body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(-
 h1 { font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 5vw, 48px); line-height: 1.1; margin: 8px 0 12px; text-wrap: balance; }
 .lede { margin: 0; max-width: 68ch; color: var(--muted); font-size: 17px; }
 .lede b { color: var(--fg); font-weight: 600; }
+.live { margin: 12px 0 0; padding: 8px 12px; border: 1px solid var(--bad); border-radius: var(--radius); color: var(--fg); font-size: 14px; max-width: 68ch; }
+.live b { color: var(--bad); }
 main { display: grid; gap: 20px; padding-bottom: 40px; }
 h2 { font-family: var(--font-display); font-weight: 500; font-size: 22px; margin: 0; text-wrap: balance; }
 h3 { font-size: 15px; margin: 16px 0 6px; }

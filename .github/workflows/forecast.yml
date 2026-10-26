@@ -1,0 +1,37 @@
+name: Forecast
+
+# Re-runs the backtest, forecast and site whenever inputs change, and daily as a safety net.
+on:
+  push:
+    branches: [main]
+    paths: ["config/**", "src/**", "data/**", "requirements.txt"]
+  schedule:
+    - cron: "0 4 * * *"   # 06:00 SAST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-update
+  cancel-in-progress: false
+
+jobs:
+  forecast:
+    runs-on: ubuntu-latest
+    env:
+      ELECTION_DATA: ${{ github.workspace }}/data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python src/pipeline.py
+      - name: Commit updated forecast
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add outputs docs
+          git diff --cached --quiet || (git commit -m "Update forecast ($(date -u +%Y-%m-%d))" && git push)

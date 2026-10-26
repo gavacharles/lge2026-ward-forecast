@@ -19,7 +19,10 @@
     fetch('data/wards.topo.json').then((r) => r.json()),
   ]);
   const P = F.parties;
-  const wardRows = Object.entries(F.wards).map(([id, w]) => ({ id, ...w, muni: F.munis[w.m].name, prov: F.munis[w.m].prov }));
+  const wardRows = Object.entries(F.wards).map(([id, w]) => {
+    const live = w.live && w.live.rep > 0 ? { f: w.live.f, p: w.live.p, s: w.live.s, rep: w.live.rep } : {};
+    return { id, ...w, ...live, pre: { f: w.f, p: w.p }, muni: F.munis[w.m].name, prov: F.munis[w.m].prov };
+  });
   const byId = Object.fromEntries(wardRows.map((w) => [w.id, w]));
   const nat = Object.fromEntries(F.national.map((r) => [r.party, r]));
 
@@ -31,7 +34,13 @@
     el('b', {}, fmt(F.ratings['Toss-up'] || 0)), ' wards are toss-ups, and ', el('b', {}, fmt(F.flips)),
     ' wards are forecast to change hands from their estimated 2021 winner.'
   );
-  document.getElementById('generated').textContent = `Forecast generated ${F.generated}. Election day ${F.election_date}.`;
+  document.getElementById('generated').textContent = `Forecast generated ${F.generated}, using polls to ${F.polls.as_of} and ${F.byelections_used} by-elections. Election day ${F.election_date}.`;
+  if (F.live) {
+    const counted = wardRows.filter((w) => w.rep > 0).length;
+    const banner = document.getElementById('live-banner');
+    banner.hidden = false;
+    banner.replaceChildren(el('b', {}, 'Live count. '), `Results are coming in: ${fmt(counted)} wards have at least one voting district counted. Ward calls below blend counted votes with the forecast for districts still out.`);
+  }
   const tiles = document.getElementById('tiles');
   for (const p of ['ANC', 'DA', 'MK', 'IFP']) {
     tiles.append(el('div', { className: 'tile' },
@@ -111,7 +120,9 @@
       el('dt', {}, 'Rating'), el('dd', {}, el('span', { className: 'rate ' + w.r }, w.r)),
       el('dt', {}, 'Runner-up'), el('dd', {}, partyTag(w.u)),
       el('dt', {}, 'Margin'), el('dd', {}, `${w.g.toFixed(1)} points`),
-      el('dt', {}, '2021 winner'), el('dd', {}, partyTag(w.w21), ' (estimated, new boundaries)'));
+      el('dt', {}, '2021 winner'), el('dd', {}, partyTag(w.w21), ' (estimated, new boundaries)'),
+      ...(w.k ? [el('dt', {}, 'Community type'), el('dd', {}, `Voted ${w.k} in 2024`)] : []),
+      ...(w.rep > 0 ? [el('dt', {}, 'Counted'), el('dd', {}, `${pct(w.rep)} of expected votes; pre-election favourite ${pname(w.pre.f)} (${pct(w.pre.p)})`)] : []));
     panel.replaceChildren(
       el('h3', {}, `${w.muni} ward ${w.n}`),
       el('p', { className: 'sub' }, `${w.prov} · ward ID ${id}`),
@@ -174,7 +185,9 @@
   for (const r of F.national) {
     const tr = el('tr');
     tr.append(el('td', {}, partyTag(r.party)));
-    for (const v of [r.share, r.poll, r.lge21, r.npe24]) tr.append(el('td', { className: 'n' }, v == null ? '—' : v.toFixed(1)));
+    tr.append(el('td', { className: 'n' }, r.share.toFixed(1)));
+    tr.append(el('td', { className: 'n' }, r.poll == null ? '—' : `${r.poll.toFixed(1)} ±${r.poll_sd.toFixed(1)}`));
+    for (const v of [r.lge21, r.npe24]) tr.append(el('td', { className: 'n' }, v == null ? '—' : v.toFixed(1)));
     tr.append(el('td', { className: 'n' }, fmt(r.fav)));
     tr.addEventListener('click', () => { mode = 'share'; shareParty = r.party; sharePick.value = r.party; sharePick.hidden = false;
       document.querySelectorAll('.seg button').forEach((x) => x.setAttribute('aria-selected', String(x.dataset.mode === 'share'))); restyle();
@@ -186,10 +199,22 @@
     const m = F.munis[k]; if (!m) continue;
     const tr = el('tr');
     tr.append(el('td', {}, m.name), el('td', {}, partyTag(m.largest)), el('td', { className: 'n' }, pct(m.pl)),
-      el('td', {}, m.maj ? partyTag(m.maj) : 'None likely'));
-    for (const p of ['ANC', 'DA', 'MK', 'EFF']) tr.append(el('td', { className: 'n' }, m.s[P.indexOf(p)].toFixed(1)));
+      el('td', { className: 'n' }, pct(m.hung)));
+    for (const p of ['ANC', 'DA', 'MK', 'EFF']) tr.append(el('td', { className: 'n' }, Math.round(m.st[P.indexOf(p)])));
+    tr.append(el('td', { className: 'n' }, String(m.seats)));
     tr.addEventListener('click', () => { zoomTo((w) => w.m === k); document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' }); });
     mt.append(tr);
+  }
+
+  const bt2 = document.getElementById('bloc-table');
+  const blocNames = Object.keys(F.blocs);
+  const blocLabel = (b) => F.blocs[b].map(pname).join(' + ');
+  bt2.querySelector('thead tr').append(...blocNames.map((b) => el('th', { className: 'n' }, blocLabel(b))));
+  for (const k of METROS) {
+    const m = F.munis[k]; if (!m) continue;
+    const tr = el('tr', {}, el('td', {}, m.name), ...blocNames.map((b) => el('td', { className: 'n' }, pct(m.bl[b]))));
+    tr.addEventListener('click', () => { zoomTo((w) => w.m === k); document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' }); });
+    bt2.querySelector('tbody').append(tr);
   }
 
   function sortable(table, rows, state, draw) {
@@ -254,6 +279,7 @@
         el('td', {}, m.name), el('td', { className: 'wide' }, m.prov), el('td', { className: 'n' }, String(m.wards)),
         el('td', {}, partyTag(m.largest)), el('td', { className: 'n' }, pct(m.pl)),
         el('td', {}, m.maj ? partyTag(m.maj) : 'None likely'),
+        el('td', { className: 'n' }, pct(m.hung)),
         el('td', { className: 'n wide' }, m.ew0.toFixed(0)), el('td', { className: 'n wide' }, m.ew1.toFixed(0)), el('td', { className: 'n wide' }, m.ew2.toFixed(0)));
       tr.addEventListener('click', () => { zoomTo((w) => w.m === m.k); document.getElementById('map-section').scrollIntoView({ behavior: 'smooth' }); });
       return tr;
@@ -264,19 +290,23 @@
   drawMunis();
 
   // ---------- backtest ----------
-  const bt = F.backtest;
-  const btRows = [
-    ['Carry forward the 2016 local winner', bt.naive_2016_lge, false],
-    ['Carry forward the 2019 national-ballot winner', bt.naive_2019_npe, false],
-    ['This model, national levels from the result', bt.model_national_poll, true],
-    ['This model, provincial levels from the result', bt.model_provincial_poll, true],
-  ];
-  const lo = 0.85, hi = 0.92;
-  document.getElementById('bt').append(...btRows.map(([label, v, model]) =>
-    el('div', { className: 'btrow' + (model ? ' model' : '') },
-      el('div', { className: 'lab' }, el('span', {}, label), el('span', {}, (v * 100).toFixed(1) + '%')),
-      el('div', { className: 'track' }, el('div', { className: 'fill', style: `width:${Math.max(2, (v - lo) / (hi - lo) * 100)}%` })))),
-    el('p', { className: 'note' }, `Bars start at 85%. Metro wards were called correctly ${(bt.model_national_poll_metros * 100).toFixed(1)}% of the time; probabilities matched outcomes closely (Brier score ${bt.brier_winner.toFixed(3)}).`));
+  const lo = 0.85, hi = 0.96;
+  const btBox = document.getElementById('bt');
+  for (const year of ['2016', '2021']) {
+    const b = F.backtest[year];
+    if (!b) continue;
+    const rows = [
+      ['Carry forward the previous local winner', b.naive_prev_lge, false],
+      ['Carry forward the last national-ballot winner', b.naive_npe, false],
+      ['This model', b.model, true],
+      ['This model with by-elections', b.model_byelections, true],
+    ];
+    btBox.append(el('h3', {}, `${year} (${fmt(b.wards)} wards)`), ...rows.map(([label, v, model]) =>
+      el('div', { className: 'btrow' + (model ? ' model' : '') },
+        el('div', { className: 'lab' }, el('span', {}, label), el('span', {}, (v * 100).toFixed(1) + '%')),
+        el('div', { className: 'track' }, el('div', { className: 'fill', style: `width:${Math.max(2, (v - lo) / (hi - lo) * 100)}%` })))));
+  }
+  btBox.append(el('p', { className: 'note' }, 'Bars start at 85%. In both years the model was called with the actual national result standing in for perfect polls; real poll error is added in the forecast simulations.'));
 })().catch((err) => {
   const lede = document.getElementById('lede');
   if (lede) lede.textContent = 'The forecast data could not load. Refresh the page to try again.';

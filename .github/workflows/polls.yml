@@ -1,0 +1,41 @@
+name: Poll update
+
+# Checks Wikipedia's poll tables daily and opens a pull request when new polls appear.
+# Merging the pull request triggers the Forecast workflow.
+on:
+  schedule:
+    - cron: "0 6 * * *"   # 08:00 SAST
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  polls:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - id: update
+        run: |
+          python src/update_polls.py | tee poll_update.txt
+          { echo "summary<<EOF"; cat poll_update.txt; echo "EOF"; } >> "$GITHUB_OUTPUT"
+          rm poll_update.txt
+      - uses: peter-evans/create-pull-request@v7
+        with:
+          branch: auto/poll-update
+          commit-message: "Update polls from Wikipedia"
+          title: "New polls from Wikipedia"
+          body: |
+            The daily check found changes in Wikipedia's 2026 municipal election poll tables.
+            Check the numbers below against the sources, then merge to re-run the forecast.
+
+            ```
+            ${{ steps.update.outputs.summary }}
+            ```
+          add-paths: config/polls_2026.csv

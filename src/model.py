@@ -146,8 +146,32 @@ def winners(S, local, exclude_oth=True):
                          "margin": margin[:, 0] - margin[:, 1]}, index=T.index)
 
 
-def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, muni_sd_scale=None):
-    """Monte Carlo over multiplicative log-errors. Returns ward win probs and municipal stats."""
+def turnout_betas(shares, turnout, weight):
+    """Per party: slope of logit(ward share) on standardised ward turnout (weighted).
+
+    Positive = the party does better where turnout is high, so it gains when turnout is low
+    elsewhere. Used to simulate differential turnout."""
+    z = (turnout - np.average(turnout, weights=weight)) / np.sqrt(np.cov(turnout, aweights=weight))
+    out = {}
+    for p in shares.columns:
+        y = logit(shares[p].values)
+        A = np.column_stack([np.ones_like(z), z])
+        sw = np.sqrt(weight.values)
+        out[p] = float(np.linalg.lstsq(A * sw[:, None], y * sw, rcond=None)[0][1])
+    return pd.Series(out)
+
+
+def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, muni_sd_scale=None,
+             turnout_beta=None, sd_turnout=0.0, council_seats=None, blocs=None, seat_sims=400):
+    """Monte Carlo over multiplicative log-errors.
+
+    Each simulation draws: a national error per party (sd_nat: scalar or per-party array, in log
+    units), a municipal error per (municipality, party), a ward error per (ward, party) with fat
+    tails (t, 5 df), and one differential-turnout shock that moves each party by
+    turnout_beta * N(0, sd_turnout). Returns ward win probabilities and municipal statistics; with
+    council_seats (Series muni -> seats) it also allocates seats in the first `seat_sims` runs.
+    """
+    from seats import allocate
     rng = np.random.default_rng(seed)
     parties = list(S.columns)
     k = len(parties)
@@ -156,6 +180,8 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
     scale = np.ones(len(munis), np.float32)
     if muni_sd_scale is not None:
         scale = muni_sd_scale.reindex(munis).fillna(1).values.astype(np.float32)
+    sd_nat = np.broadcast_to(np.asarray(sd_nat, np.float32), (k,))
+    tb = np.zeros(k, np.float32) if turnout_beta is None else turnout_beta.reindex(parties).fillna(0).values.astype(np.float32)
     frac = local.local_frac.reindex(S.index).fillna(0).values.astype(np.float32)
     oth = parties.index("OTH")
     labels = parties[:oth] + ["LOCAL"] + parties[oth + 1:]
@@ -164,10 +190,17 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
     largest = np.zeros((len(munis), k), np.int32)
     majority = np.zeros((len(munis), k), np.int32)
     mshare = np.zeros((len(munis), k), np.float64)
-    for _ in range(n):
-        e = (rng.normal(0, sd_nat, k)[None, :]
+    seats_n = None if council_seats is None else council_seats.reindex(munis).values.astype(int)
+    seat_sum = np.zeros((len(munis), k))
+    seat_largest = np.zeros((len(munis), k))
+    seat_major = np.zeros((len(munis), k))
+    bloc_major = {b: np.zeros(len(munis)) for b in (blocs or {})}
+    bloc_idx = {b: [parties.index(p) for p in ps if p in parties] for b, ps in (blocs or {}).items()}
+    for it in range(n):
+        e = (rng.normal(0, 1, k).astype(np.float32)[None, :] * sd_nat[None, :]
              + rng.normal(0, 1, (len(munis), k)).astype(np.float32)[midx] * (sd_muni * scale[midx])[:, None]
-             + rng.standard_t(5, (len(S), k)).astype(np.float32) * sd_ward)
+             + rng.standard_t(5, (len(S), k)).astype(np.float32) * sd_ward
+             + np.float32(rng.normal(0, sd_turnout)) * tb[None, :])
         x = np.exp(base + e)
         x /= x.sum(1, keepdims=True)
         # council strength: party vote shares by municipality
@@ -179,11 +212,28 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
         majority += msum > 0.5
         y = x.copy()
         y[:, oth] *= frac  # only the largest local party can win the ward
-        wins[np.arange(len(S)), y.argmax(1)] += 1
+        win = y.argmax(1)
+        wins[np.arange(len(S)), win] += 1
+        if seats_n is not None and it < seat_sims:
+            ww = np.zeros((len(munis), k), int)
+            np.add.at(ww, (midx, win), 1)
+            for m in range(len(munis)):
+                st = allocate(msum[m], ww[m], seats_n[m])
+                seat_sum[m] += st
+                seat_largest[m, st.argmax()] += 1
+                seat_major[m] += st > seats_n[m] / 2
+                for b, ix in bloc_idx.items():
+                    bloc_major[b][m] += st[ix].sum() > seats_n[m] / 2
     probs = pd.DataFrame(wins / n, index=S.index, columns=labels)
     mstats = {
         "share": pd.DataFrame(mshare / n, index=munis, columns=parties),
         "p_largest": pd.DataFrame(largest / n, index=munis, columns=parties),
         "p_majority": pd.DataFrame(majority / n, index=munis, columns=parties),
     }
+    if seats_n is not None:
+        ns = min(n, seat_sims)
+        mstats["seats"] = pd.DataFrame(seat_sum / ns, index=munis, columns=parties)
+        mstats["p_largest_seats"] = pd.DataFrame(seat_largest / ns, index=munis, columns=parties)
+        mstats["p_majority_seats"] = pd.DataFrame(seat_major / ns, index=munis, columns=parties)
+        mstats["p_bloc_majority"] = pd.DataFrame({b: v / ns for b, v in bloc_major.items()}, index=munis)
     return probs, mstats
