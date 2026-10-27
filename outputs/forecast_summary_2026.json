@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-26",
+ "as_of": "2026-10-27",
  "national_share": {
   "ANC": 29.72,
   "DA": 24.62,
@@ -12,7 +12,7 @@
   "OTH": 12.44
  },
  "polls": {
-  "as_of": "2026-10-26",
+  "as_of": "2026-10-27",
   "house_effects": {
    "SRF": {
     "ANC": 1.0100000000000016,
@@ -61,7 +61,7 @@
      "DA": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 40,
+    "n_eff": 39,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -86,8 +86,8 @@
      "FFP": 2.08,
      "ASA": 2.06
     },
-    "n_eff": 823,
-    "weight": 0.51,
+    "n_eff": 805,
+    "weight": 0.5,
     "polls": "Ipsos, MarkData, SABI"
    },
    "EKU": {
@@ -111,8 +111,8 @@
      "FFP": 2.83,
      "ASA": 3.08
     },
-    "n_eff": 462,
-    "weight": 0.37,
+    "n_eff": 452,
+    "weight": 0.36,
     "polls": "Ipsos, MarkData"
    },
    "ETH": {
@@ -136,7 +136,7 @@
      "FFP": 2.16,
      "ASA": 2.21
     },
-    "n_eff": 1277,
+    "n_eff": 1247,
     "weight": 0.61,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
@@ -161,7 +161,7 @@
      "FFP": 2.25,
      "ASA": 2.48
     },
-    "n_eff": 1263,
+    "n_eff": 1234,
     "weight": 0.61,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
@@ -178,7 +178,7 @@
      "MK": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 40,
+    "n_eff": 39,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -203,7 +203,7 @@
      "FFP": 2.83,
      "ASA": 2.01
     },
-    "n_eff": 439,
+    "n_eff": 429,
     "weight": 0.35,
     "polls": "Ipsos, MarkData"
    },
@@ -226,7 +226,7 @@
      "FFP": 2.48,
      "ASA": 2.28
     },
-    "n_eff": 1278,
+    "n_eff": 1248,
     "weight": 0.61,
     "polls": "Ipsos, MarkData, SABI, SRF"
    }
@@ -251,7 +251,7 @@
    "FFP": 2.01,
    "ASA": 2.2
   },
-  "national_n_eff": 3341.1375802641355,
+  "national_n_eff": 3264.8258924653755,
   "national_pollsters": [
    "Ipsos",
    "SABI",
@@ -401,21 +401,21 @@
   "GOOD": 1
  },
  "expected_wards": {
-  "ANC": 2306.8,
-  "DA": 1037.1,
+  "ANC": 2307.3,
+  "DA": 1036.5,
   "MK": 699.0,
   "EFF": 123.9,
-  "IFP": 162.2,
-  "PA": 50.0,
-  "FFP": 44.0,
+  "IFP": 162.3,
+  "PA": 50.1,
+  "FFP": 44.1,
   "ASA": 26.6,
   "LOCAL_TOP": 35.3
  },
  "ratings": {
-  "Safe": 2522,
-  "Likely": 915,
-  "Lean": 561,
-  "Toss-up": 487
+  "Safe": 2520,
+  "Likely": 919,
+  "Lean": 558,
+  "Toss-up": 488
  },
  "flips": 1232
 }
