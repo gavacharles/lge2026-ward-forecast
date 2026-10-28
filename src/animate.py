@@ -1,7 +1,7 @@
 """Animated tour of the live site: headless Chrome screenshots of link states, captioned and
 cross-faded into content/animation/dashboard.mp4 (H.264, for X) and dashboard.gif.
 
-Needs Google Chrome, Pillow, numpy and imageio + imageio-ffmpeg (MP4 is skipped without them).
+Needs Google Chrome, Selenium, Pillow, numpy and imageio + imageio-ffmpeg (MP4 is skipped without them).
 Usage: python src/animate.py
 """
 import functools
@@ -9,10 +9,12 @@ import http.server
 import subprocess
 import tempfile
 import threading
+import time
 from pathlib import Path
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
+from selenium.webdriver.support.ui import WebDriverWait
 
 from paths import PROJECT
 
@@ -43,10 +45,27 @@ def serve(root):
     return httpd
 
 
-def shoot(url, path):
-    subprocess.run([CHROME, "--headless=new", "--disable-gpu", "--hide-scrollbars", f"--window-size={W},{H}",
-                    "--virtual-time-budget=25000", f"--screenshot={path}", url],
-                   check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+def browser():
+    from selenium import webdriver
+    opts = webdriver.ChromeOptions()
+    opts.binary_location = CHROME
+    for a in ("--headless=new", "--disable-gpu", "--hide-scrollbars", f"--window-size={W},{H}"):
+        opts.add_argument(a)
+    drv = webdriver.Chrome(options=opts)
+    drv.set_window_size(W, H)
+    return drv
+
+
+def shoot(drv, url, path):
+    # Headless --screenshot leaves scrolled-to sections unpainted, so drive a real page instead.
+    drv.get("about:blank")
+    drv.get(url)
+    WebDriverWait(drv, 30).until(lambda d: d.execute_script(
+        "return document.querySelectorAll('#bt h3').length > 0"))
+    time.sleep(2.5)  # map tiles and fly-to animations
+    drv.execute_script("window.dispatchEvent(new HashChangeEvent('hashchange'))")
+    time.sleep(1.5)
+    drv.save_screenshot(str(path))
 
 
 def caption(img, text):
@@ -68,13 +87,15 @@ def main():
     httpd = serve(PROJECT / "docs")
     base = f"http://127.0.0.1:{httpd.server_address[1]}/index.html"
     stills = []
+    drv = browser()
     with tempfile.TemporaryDirectory() as tmp:
         for i, (state, text) in enumerate(SCENES):
             p = Path(tmp) / f"s{i}.png"
-            shoot(base + (f"#{state}" if state else ""), p)
+            shoot(drv, base + (f"#{state}" if state else ""), p)
             img = caption(Image.open(p), text)
             img.save(OUT / f"scene_{i:02d}.png")
             stills.append(np.asarray(img))
+    drv.quit()
     httpd.shutdown()
 
     frames = []
