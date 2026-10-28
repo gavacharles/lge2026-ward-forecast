@@ -248,6 +248,62 @@ def maps(w):
     plt.close(fig)
 
 
+# National Assembly results (IEC, official) and local-election PR-ballot shares. 1999 DA = Democratic Party;
+# 1994 DA = Democratic Party. 2000 local: combined ballot (only total published); 2006 local: PR ballot;
+# 2011-2021 local: PR ballot from the IEC voting-district results used by the model.
+HISTORY = {
+    "national": {1994: {"ANC": 62.65, "DA": 1.73, "IFP": 10.54},
+                 1999: {"ANC": 66.35, "DA": 9.56, "IFP": 8.58},
+                 2004: {"ANC": 69.69, "DA": 12.37, "IFP": 6.97},
+                 2009: {"ANC": 65.90, "DA": 16.66, "IFP": 4.55},
+                 2014: {"ANC": 62.15, "DA": 22.23, "IFP": 2.40, "EFF": 6.35},
+                 2019: {"ANC": 57.50, "DA": 20.77, "IFP": 3.38, "EFF": 10.80},
+                 2024: {"ANC": 40.18, "DA": 21.81, "IFP": 3.85, "EFF": 9.52, "MK": 14.58}},
+    "local": {2000: {"ANC": 59.4, "DA": 22.1, "IFP": 9.1},
+              2006: {"ANC": 65.7, "DA": 16.3, "IFP": 7.6},
+              2011: {"ANC": 62.93, "DA": 24.08, "IFP": 3.56},
+              2016: {"ANC": 54.48, "DA": 27.02, "IFP": 4.27, "EFF": 8.24},
+              2021: {"ANC": 46.14, "DA": 21.75, "IFP": 5.85, "EFF": 10.46}},
+}
+
+
+def since_1994(summary):
+    """Party vote shares in every national and local election since 1994, with the 2026 forecast."""
+    fig = frame("From 69% to under 30%: the ANC since 1994",
+                "Vote share (%). Solid line: national elections. Open circles: local elections (PR ballot).\n"
+                "2026: forecast ward-ballot share, with 90% range. DA in 1994 and 1999 = Democratic Party")
+    ax = fig.add_axes([0.07, 0.11, 0.80, 0.68])
+    fc, rng = summary["national_share"], summary["national_interval_90"]
+    # label positions, nudged apart so they don't overlap
+    ys = sorted(((fc[p], p) for p in ["ANC", "DA", "IFP", "EFF", "MK"]))
+    lab, prev = {}, -10.0
+    for v, p in ys:
+        prev = max(v, prev + 3.6)
+        lab[p] = prev
+    for p in ["ANC", "DA", "IFP", "EFF", "MK"]:
+        nat = sorted((y, v[p]) for y, v in HISTORY["national"].items() if p in v)
+        loc = sorted((y, v[p]) for y, v in HISTORY["local"].items() if p in v)
+        ax.plot(*zip(*nat), color=COL[p], linewidth=2.2, marker="o", markersize=4, zorder=3)
+        if loc:
+            ax.plot(*zip(*loc), color=COL[p], linewidth=0, marker="o", markersize=5, markerfacecolor=BG,
+                    markeredgewidth=1.4, zorder=3)
+        last = max(nat + loc)
+        ax.plot([last[0], 2026], [last[1], fc[p]], color=COL[p], linewidth=1.4, linestyle=(0, (2, 2)), zorder=2)
+        ax.errorbar(2026, fc[p], yerr=[[fc[p] - rng[p]["p05"]], [rng[p]["p95"] - fc[p]]], color=COL[p], capsize=3,
+                    linewidth=1.4, marker="D", markersize=5, zorder=4)
+        ax.text(2026.8, lab[p], f"{name(p)} {fc[p]:.0f}", va="center", fontsize=10, color=COL[p], fontweight="bold")
+    ax.axvspan(2025.2, 2026.6, color=GRID, alpha=0.45, zorder=0)
+    ax.text(2025.9, 74, "2026\nforecast", ha="center", va="top", fontsize=8.5, color=MUTED)
+    ax.set_xlim(1993, 2029.5)
+    ax.set_ylim(0, 75)
+    ax.set_xticks([1994, 1999, 2004, 2009, 2014, 2019, 2024])
+    ax.grid(axis="y", color=GRID, linewidth=0.8)
+    ax.set_axisbelow(True)
+    clean(ax, grid_x=False)
+    fig.savefig(OUT / "10_since_1994.png")
+    plt.close(fig)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     summary = json.load(open(OUTPUTS / "forecast_summary_2026.json"))
@@ -260,6 +316,7 @@ def main():
     metro_seats(m)
     backtest(bt)
     kzn_byelections(summary)
+    since_1994(summary)
     coalitions(m, blocs)
     nowcast()
     maps(w)
