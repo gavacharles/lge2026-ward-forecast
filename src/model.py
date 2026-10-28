@@ -196,6 +196,7 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
     seat_major = np.zeros((len(munis), k))
     bloc_major = {b: np.zeros(len(munis)) for b in (blocs or {})}
     bloc_idx = {b: [parties.index(p) for p in ps if p in parties] for b, ps in (blocs or {}).items()}
+    nat_draws = np.zeros((n, k))
     for it in range(n):
         e = (rng.normal(0, 1, k).astype(np.float32)[None, :] * sd_nat[None, :]
              + rng.normal(0, 1, (len(munis), k)).astype(np.float32)[midx] * (sd_muni * scale[midx])[:, None]
@@ -203,6 +204,7 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
              + np.float32(rng.normal(0, sd_turnout)) * tb[None, :])
         x = np.exp(base + e)
         x /= x.sum(1, keepdims=True)
+        nat_draws[it] = (x * w[:, None]).sum(0) / w.sum()
         # council strength: party vote shares by municipality
         msum = np.zeros((len(munis), k))
         np.add.at(msum, midx, x * w[:, None])
@@ -229,6 +231,8 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
         "share": pd.DataFrame(mshare / n, index=munis, columns=parties),
         "p_largest": pd.DataFrame(largest / n, index=munis, columns=parties),
         "p_majority": pd.DataFrame(majority / n, index=munis, columns=parties),
+        "national_interval": pd.DataFrame(np.quantile(nat_draws, [0.05, 0.5, 0.95], axis=0), index=["p05", "p50", "p95"],
+                                          columns=parties),
     }
     if seats_n is not None:
         ns = min(n, seat_sims)

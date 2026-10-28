@@ -6,6 +6,10 @@ Each cycle mirrors the 2026 setup:
 Coefficients are fit leave-one-province-out. Party levels are calibrated to the actual national
 result (i.e. assumes accurate national polls). The by-election adjustment settings (ALPHA, K) are
 tuned across both cycles; error sizes and pooled coefficients for 2026 are saved.
+
+KZN outside eThekwini has no polls, so the 2026 forecast also treats its by-elections as a regional
+poll. Here we measure how far that regional by-election level was from the actual result in each
+cycle (saved as bias factors for 2026) and score the step with the other cycle's factors.
 """
 import itertools
 import json
@@ -141,6 +145,32 @@ def main():
         c["S2"] = S2
         results[n] = r
 
+    # KZN (outside eThekwini): by-elections as a regional poll
+    ratios, region = {}, {}
+    for n, c in cycles.items():
+        cfg = c["cfg"]
+        msk = ((c["prov"] == "KZN") & (c["wards"].muni != "ETH")).values
+        b, _ = BE.load(cfg["term"])
+        ratio, nb = BE.regional_levels(cfg["term"], cfg["since"], votes, cfg["npe"], cfg["parties"],
+                                       BE.kzn_region_wards(b.ward))
+        wm = c["weight"][msk]
+        base = c["X_npe"][msk].mul(wm, axis=0).sum() / wm.sum()
+        cur = c["S2"][msk].mul(wm, axis=0).sum() / wm.sum()
+        actual = c["Y"][msk].mul(wm, axis=0).sum() / wm.sum()
+        target, _ = BE.region_target(base, ratio, nb, 0, cur)
+        ratios[n] = (actual / pd.Series(target)).where(actual > 0.01)
+        region[n] = dict(msk=msk, base=base, ratio=ratio, n=nb, cur=cur)
+    for n, c in cycles.items():
+        r = region[n]
+        bias = BE.bias_factors({m: v for m, v in ratios.items() if m != n})
+        tgt, w = BE.region_target(r["base"], r["ratio"] * bias.reindex(r["ratio"].index).fillna(1), r["n"], k,
+                                  r["cur"])
+        S4 = M.calibrate(c["S2"], c["weight"], tgt, c["cols"], mask=r["msk"])
+        results[n]["kzn_region_byelections_used"] = r["n"]
+        results[n]["model_byelections_kzn_region"] = accuracy(c, c["S2"], r["msk"])
+        results[n]["model_byelection_level_kzn_region"] = accuracy(c, S4, r["msk"])
+    region_bias = BE.bias_factors(ratios)
+
     sd_muni, sd_ward = float(np.mean(sd_m)), float(np.mean(sd_w))
     tb_all = []
     for n, c in cycles.items():
@@ -183,7 +213,8 @@ def main():
         "results": results,
         "tuning": grid.round(4).to_dict(orient="records"),
         "params": {"alpha": alpha, "k_shrink": k, "sd_muni": sd_muni, "sd_ward": sd_ward,
-                   "sd_turnout": 0.25, "coef": coef, "pooled": pooled},
+                   "sd_turnout": 0.25, "coef": coef, "pooled": pooled,
+                   "kzn_byelection_bias": region_bias.round(3).to_dict()},
         "communities": {n: c["comm"].labels for n, c in cycles.items()},
     }
     OUTPUTS.mkdir(exist_ok=True)

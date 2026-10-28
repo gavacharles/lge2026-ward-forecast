@@ -1,8 +1,8 @@
 """Run the model end to end.
 
   python src/pipeline.py                 backtest -> forecast -> site (uses processed data only)
-  python src/pipeline.py --refresh-data  first re-download IEC results, rescrape new by-elections,
-                                         rebuild processed tables and snapshot them into the repo
+  python src/pipeline.py --refresh-data  first re-download IEC results, rescrape new by-elections and
+                                         candidate lists, rebuild processed tables and snapshot them
   python src/pipeline.py --snapshot      copy processed tables into the repo's data/interim
 
 The GitHub Action runs the first form with ELECTION_DATA pointing at the repo's data/ folder, so
@@ -15,6 +15,7 @@ import backtest
 import build_data
 import build_site
 import download
+import fetch_candidates
 import forecast_2026
 import scrape_byelections
 from paths import INTERIM, PROJECT
@@ -40,6 +41,7 @@ def main(args):
     if "--refresh-data" in args:
         download.main()
         scrape_byelections.main("1091", "2021-11-02")
+        fetch_candidates.main()
         build_data.main()
         snapshot()
     backtest.main()

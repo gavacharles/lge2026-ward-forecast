@@ -59,13 +59,15 @@ def main():
             "bl": {b: float(bloc_p.at[r.muni, f"p_bloc_{b}"]) for b in blocs},
         }
     wt = w.expected_votes
+    interval = summary.get("national_interval_90", {})
     national = []
     for p in PARTIES:
         fav = int((w.favourite == p).sum()) if p != "OTH" else int((~w.favourite.isin(PARTIES)).sum())
         exp = float(w[f"p_{p}"].sum() if p != "OTH" else w["p_LOCAL_TOP"].sum())
         national.append({"party": p, "share": round(float((w[f"share_{p}"] * wt).sum() / wt.sum()), 1),
                          "poll": polls["national"].get(p), "poll_sd": polls["national_sd_pts"].get(p),
-                         "fav": fav, "exp": round(exp, 1)})
+                         "fav": fav, "exp": round(exp, 1),
+                         "lo": interval.get(p, {}).get("p05"), "hi": interval.get(p, {}).get("p95")})
     hist_f = RAW.parent / "interim" / "vd_votes.parquet"
     hist = pd.read_parquet(hist_f)
     for e, key in [("lge2021_ward", "lge21"), ("npe2024", "npe24")]:
@@ -85,6 +87,10 @@ def main():
         "polls": {"as_of": polls["as_of"], "pollsters": polls["national_pollsters"],
                   "metros": {k: {"weight": v["weight"], "polls": v["polls"]} for k, v in polls["metros"].items()}},
         "byelections_used": summary["byelections_used"],
+        "scenarios": summary.get("scenarios"),
+        "kzn_region": {k: summary["kzn_region"][k] for k in ("byelections", "weight")} if summary.get("kzn_region") else None,
+        "expected_correct": summary.get("expected_correct_calls"),
+        "candidates": summary.get("used_candidate_list", False),
         "backtest": {k: {kk: round(vv, 4) for kk, vv in v.items()} for k, v in bt["results"].items()},
         "live": nowcast is not None,
         "munis": munis,

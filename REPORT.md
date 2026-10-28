@@ -1,6 +1,6 @@
 # How the LGE 2026 ward forecast was built
 
-*Report date: 26 October 2026 · Election day: 4 November 2026 · Live map: <https://gavacharles.github.io/lge2026-ward-forecast/>*
+*Report date: 29 October 2026 · Methodology, margins of error and limits: [METHODOLOGY.md](METHODOLOGY.md) · Election day: 4 November 2026 · Live map: <https://gavacharles.github.io/lge2026-ward-forecast/>*
 
 This is an independent model, not affiliated with the Electoral Commission of South Africa (IEC), the
 Municipal Demarcation Board (MDB) or any party. Its forecasts are probabilities. In some wards the
@@ -13,27 +13,29 @@ The forecast gives a favourite and a win probability for each of South Africa's 
 municipality. It runs automatically, and on election night it switches to live updating from the IEC's
 published results.
 
-**Headline forecast (as of 26 October 2026):**
+**Headline forecast (as of 29 October 2026):**
 
-| Party | National ward-ballot share | Wards favoured | Expected wards won* |
+| Party | National ward-ballot share (90% range) | Wards favoured | Expected wards won* |
 | --- | --- | --- | --- |
-| ANC | 29.7% | 2,482 | 2,307 |
-| DA | 24.6% | 1,061 | 1,037 |
-| MK | 13.2% | 747 | 699 |
-| IFP | 3.5% | 111 | 162 |
-| EFF | 8.0% | 28 | 124 |
-| PA | 2.2% | 28 | 50 |
-| FF+ | 3.0% | 20 | 44 |
-| ActionSA | 3.3% | 2 | 27 |
-| Local parties and independents | 12.4% | 8 | 35 |
+| ANC | 29.9% (24–34) | 2,501 | 2,306 |
+| DA | 24.7% (19–29) | 1,070 | 1,049 |
+| MK | 10.7% (8–13) | 386 | 433 |
+| IFP | 5.1% (3–8) | 402 | 353 |
+| EFF | 8.1% (5–14) | 35 | 136 |
+| PA | 2.2% (1–4) | 33 | 57 |
+| FF+ | 3.0% (2–6) | 22 | 52 |
+| ActionSA | 3.7% (2–8) | 20 | 53 |
+| Local parties and independents | 12.5% (10–16) | 16 | 44 |
 
 \*Expected wards won is the sum of each ward's win probability. It differs from the favourite count
 because a party that trails narrowly in many wards still wins some of them.
 
-- **Competitiveness:** 487 wards are toss-ups (no party above a 60% chance), and 1,232 wards have a
+- **Competitiveness:** 659 wards are toss-ups (no party above a 60% chance), and 1,006 wards have a
   different favourite from their estimated 2021 winner.
-- **Biggest swings:** ANC to MK (498 wards, mostly KwaZulu-Natal), ANC to DA (293) and IFP to MK (219).
-- **Councils:** 154 of 213 councils are more likely than not to be hung. Cape Town is the only metro
+- **Biggest swings:** ANC to MK (354 wards, mostly KwaZulu-Natal), ANC to DA (303) and ANC to IFP (78).
+- **KwaZulu-Natal** follows its by-elections rather than national polls (section 5). With polls alone,
+  MK would be favoured in 658 KZN wards instead of 303; both versions are published.
+- **Councils:** 151 of 213 councils are more likely than not to be hung. Cape Town is the only metro
   likely to have a single-party majority (DA, 72%).
 
 **Does the method work?** It was re-run on the eve of the 2016 and 2021 elections, using only data
@@ -148,7 +150,7 @@ applied a quarter of the measured effect (alpha = 0.25, shrinkage k = 10). That 
 points in 2016 and lowered it by 0.1 points in 2021. By-elections carry a real but weak signal: they have
 low turnout, strong candidate effects, and few by-elections fall in any one province and community type.
 
-**What the 2024–26 by-elections say about KwaZulu-Natal:**
+**What the 2024–26 by-elections say about KwaZulu-Natal (adjustment by province and community type):**
 - Across about 40 KwaZulu-Natal by-elections, MK ran about 21% below its 2024 level relative to other
   parties (effect −0.24), and the ANC recovered (+0.24).
 - The IFP held roughly level overall: about +5% (after shrinkage) where it contests MK head to head
@@ -157,21 +159,46 @@ low turnout, strong candidate effects, and few by-elections fall in any one prov
   at a quarter of strength, the forecast still has MK favoured in many 2021 IFP wards (219 flips). This
   is the forecast's least certain area.
 
+**KwaZulu-Natal outside eThekwini: by-elections as a regional poll (added 29 October).** A review found
+that in 41 KZN by-elections since 2024, MK averaged 24% where the poll-led forecast expected 37%, and the
+IFP 29% against 16%. Winners matched in only 44% of these wards. In past cycles, KZN by-elections and the
+next local result matched in 82–89% of wards. The adjustment above can't correct this, because it removes
+each party's average by-election swing as national drift, and MK's by-elections are almost all in KZN.
+
+So in KZN outside eThekwini (no polls there), the by-elections now also set the parties' overall level:
+
+- For each party, ratio = mean by-election share ÷ mean 2024 national-ballot share in the same voting
+  districts (35 by-elections): MK 0.62, IFP 1.43, ANC 1.38, DA 0.87.
+- Each ratio is multiplied by a correction for how far KZN by-elections were from the next local result in
+  2016 and 2021. A correction is used only where both cycles agree on its direction, capped at ×1.5:
+  ANC 0.93, IFP 1.10, DA 1.45, EFF 1.5. MK has no history, so it gets none.
+- The resulting level gets n ÷ (n + 10) = 78% weight against the model's own. "Other" keeps its level,
+  because the national-ballot baseline has no independents.
+- Outside this region, MK and the IFP keep their modelled levels instead of being scaled to their
+  national poll totals. So MK's national share (10.7%) comes out below the polls (13.7%).
+
+Result in the region: MK 42.8% → 27.4%, IFP 20.6% → 30.1%, ANC 12.3% → 19.0%. In the 2016 and 2021
+backtests, where national polls were assumed perfect, this step lowered KZN-region accuracy slightly
+(84.2% → 83.8% and 80.0% → 78.5%). It is used for 2026 as a judgement, because polls and by-elections now
+disagree far more than in those cycles and MK has no local record. A poll-led version is saved in
+`outputs/ward_forecast_2026_poll_scenario.csv` and shown on the site.
+
 ## 6. Polls, turnout, candidates and uncertainty
 
 **Poll average.** Each poll's weight is √(sample ÷ 1,000) × 0.5^(age in days ÷ 30), so it halves every
 30 days. Each pollster's lean is measured from its final 2024 poll against the 2024 result, and half
-of it is removed:
+of it is removed. Only final polls that ended within three weeks of election day count. An earlier
+poll's miss is mostly late movement: Ipsos's final 2024 poll ended six weeks early and missed MK's surge.
 
 | Pollster | Lean removed (points: ANC, DA, MK, EFF) | 2024 poll used |
 | --- | --- | --- |
 | SRF / The Common Sense | +1.0, −0.1, −1.1, +0.6 | 27 May 2024 |
-| eNCA / MarkData | +1.6, −1.6, −0.2, +0.9 | May 2024 |
-| Ipsos | 0.0, 0.0, −3.1, +1.0 | ended 15 April 2024; MK's later surge inflates its MK figure |
+| eNCA / MarkData | +1.6, −1.6, −0.2, +0.9 | 20 May 2024 |
+| Ipsos | none (final poll ended 15 April 2024) | — |
 | SABI / News24 | none (no 2024 poll) | — |
 
-Current average, with spread: ANC 31.3% ±2.1, DA 25.9% ±2.1, MK 13.9% ±2.4, EFF 8.4% ±2.8, IFP 3.7%,
-FF+ 3.2%, ActionSA 3.5%, PA 2.3%. The ± combines disagreement between polls with a 2-point allowance
+Current average, with spread: ANC 31.3% ±2.1, DA 25.9% ±2.1, MK 13.7% ±2.2, EFF 8.5% ±2.9, IFP 3.7%,
+FF+ 3.2%, ActionSA 3.9%, PA 2.3%. The ± combines disagreement between polls with a 2-point allowance
 for the typical error of a final poll average. In the forecast these are shares of all votes, so they are
 scaled down by the 12.4% held for "Other".
 
@@ -193,8 +220,15 @@ than predicted (for example 72.8% of the 60–70% group in 2021). The 95%+ group
 overconfident: 97.2% won against 98.7% predicted in 2021. The Brier score for the winner's
 probability was 0.050 in 2016 and 0.083 in 2021.
 
-**Candidates.** If `config/candidates_2026.csv` (ward, party) is supplied, parties without a candidate in
-a ward are removed there and the shares re-normalised. This run has no list.
+**Candidates.** `src/fetch_candidates.py` reads the IEC's certified candidate lists (one PDF per
+province, as supplemented on 23 October 2026 after the Constitutional Court order) into
+`config/candidates_2026.csv`: 99,891 ward candidacies, including 569 independents. Parties without a
+candidate in a ward are removed there and the shares re-normalised. The DA and EFF stand in every ward,
+the ANC in 4,471, MK in 3,770 and the IFP in 1,921.
+
+**National ranges.** The simulations also give 90% ranges for each party's national share (section 1).
+The favourites' average win chance is 83.5%. That is what the forecast itself expects its ward
+accuracy to be, below the backtest figures because those assumed perfect polls.
 
 ## 7. Council seats and coalitions
 
@@ -262,8 +296,9 @@ a local machine every 10 minutes.
 
 ## 10. Limitations and what to watch
 
-- **KwaZulu-Natal.** The IFP–MK contest is the least certain part. By-elections suggest MK has slipped
-  since 2024, but the backtests support only a light adjustment.
+- **KwaZulu-Natal.** The IFP–MK contest is the least certain part. The published forecast follows the
+  by-elections (MK well below 2024). National polls disagree, and the backtests don't settle which is
+  right. Treat KZN calls as the range between the two published versions.
 - **Local effects dominate the errors.** Even with perfect provincial polls, about 9% (2021) and 5% (2016)
   of wards go against the model. These are local candidates, defections and community issues.
 - **"Other" is held at its 2021 level.** New parties such as Unite for Change, Afrika Mayibuye and the

@@ -180,12 +180,30 @@
   zProv.addEventListener('change', () => { fillZMuni(); zoomTo((w) => !zProv.value || w.prov === zProv.value); });
   zMuni.addEventListener('change', () => { if (zMuni.value) zoomTo((w) => w.m === zMuni.value); });
 
+  // ---------- KwaZulu-Natal scenarios ----------
+  if (F.scenarios) {
+    const kt = document.querySelector('#kzn-table tbody');
+    const [b, p] = [F.scenarios.byelection, F.scenarios.poll];
+    const row = (label, f) => kt.append(el('tr', {}, el('td', {}, label), el('td', { className: 'n' }, f(b)), el('td', { className: 'n' }, f(p))));
+    for (const party of ['MK', 'IFP', 'ANC', 'DA']) {
+      row(`Wards favouring ${party}`, (s) => fmt(s.kzn.favourites[party] || 0));
+    }
+    for (const party of ['MK', 'IFP', 'ANC']) {
+      row(`${party} vote outside eThekwini (%)`, (s) => s.kzn.share_outside_ethekwini[party].toFixed(1));
+    }
+    row('Councils where MK is likely largest', (s) => fmt(s.kzn.councils_largest.MK || 0));
+    row('Councils where IFP is likely largest', (s) => fmt(s.kzn.councils_largest.IFP || 0));
+    row('MK national vote (%)', (s) => s.national_share.MK.toFixed(1));
+    if (F.kzn_region) document.getElementById('kzn-note').append(` ${F.kzn_region.byelections} by-elections, given ${Math.round(F.kzn_region.weight * 100)}% weight against the model's own estimate.`);
+  } else document.getElementById('kzn').hidden = true;
+
   // ---------- tables ----------
   const st = document.querySelector('#share-table tbody');
   for (const r of F.national) {
     const tr = el('tr');
     tr.append(el('td', {}, partyTag(r.party)));
     tr.append(el('td', { className: 'n' }, r.share.toFixed(1)));
+    tr.append(el('td', { className: 'n' }, r.lo == null ? '—' : `${r.lo.toFixed(0)}–${r.hi.toFixed(0)}`));
     tr.append(el('td', { className: 'n' }, r.poll == null ? '—' : `${r.poll.toFixed(1)} ±${r.poll_sd.toFixed(1)}`));
     for (const v of [r.lge21, r.npe24]) tr.append(el('td', { className: 'n' }, v == null ? '—' : v.toFixed(1)));
     tr.append(el('td', { className: 'n' }, fmt(r.fav)));

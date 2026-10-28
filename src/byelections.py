@@ -98,3 +98,53 @@ def ward_adjustment(wards_prov, wards_comm, prov_e, pc_e, parties, alpha):
             e += np.array([ce.get((pv, c), 0.0) for pv, c in zip(wards_prov.values, wards_comm.reindex(out.index).values)])
         out[p] = np.exp(alpha * e)
     return out
+
+
+def regional_levels(term, since, votes, baseline, parties, wards):
+    """Party levels in a region measured by its by-elections, relative to the baseline election.
+
+    Treats the by-elections held in `wards` (by-election ward IDs) as a regional poll: for each party,
+    ratio = mean by-election share / mean baseline share of the same voting districts (each by-election
+    counts once). Returns (ratio per party, number of by-elections). Parties under 1% in both are
+    left at 1.
+    """
+    b, v = load(term)
+    b, v = b[(b.date >= since) & b.ward.isin(wards)], v[(v.date >= since) & v.ward.isin(wards)]
+    b["party"] = b.party.where(b.party.isin(parties), "OTH")
+    by = b.pivot_table(index=["date", "ward"], columns="party", values="votes", aggfunc="sum", fill_value=0)
+    by = by.reindex(columns=parties + ["OTH"], fill_value=0)
+    base = votes[votes.election == baseline].merge(v, on="vd")
+    base["party"] = base.party.where(base.party.isin(parties), "OTH")
+    bs = base.pivot_table(index=["date", "ward"], columns="party", values="votes", aggfunc="sum", fill_value=0)
+    bs = bs.reindex(columns=parties + ["OTH"], fill_value=0)
+    idx = by.index.intersection(bs.index)
+    by = by.loc[idx].div(by.loc[idx].sum(axis=1), axis=0).mean()
+    bs = bs.loc[idx].div(bs.loc[idx].sum(axis=1), axis=0).mean()
+    ratio = (by / bs).where((by > 0.01) | (bs > 0.01), 1.0).fillna(1.0)
+    return ratio, len(idx)
+
+
+def region_target(base, ratio, n, k_shrink, current):
+    """Calibration target for a region: its baseline shares x by-election ratios, normalised, then
+    blended (in logs) with the current forecast by weight n / (n + k_shrink). OTH keeps its current
+    level: the national-ballot baseline has no independents, which stand only in local elections."""
+    t = base * ratio.reindex(base.index).fillna(1.0)
+    t = t.drop("OTH") / t.drop("OTH").sum() * (1 - current["OTH"])
+    t["OTH"] = current["OTH"]
+    w = n / (n + k_shrink)
+    tgt = np.exp(w * np.log(t.clip(lower=1e-6)) + (1 - w) * np.log(current.reindex(t.index).clip(lower=1e-6)))
+    return (tgt / tgt.sum()).to_dict(), w
+
+
+def kzn_region_wards(ward_ids):
+    """By-election (or forecast) ward IDs in KwaZulu-Natal outside eThekwini (59500xxx), which has polls."""
+    w = pd.Series(sorted(set(ward_ids)), dtype=str)
+    return set(w[w.str.startswith("5") & ~w.str.startswith("595")])
+
+
+def bias_factors(per_cycle, cap=1.5):
+    """Combine per-cycle (actual / by-election target) ratios: where every cycle agrees on the
+    direction, use the geometric mean (capped to [1/cap, cap]); otherwise 1."""
+    df = np.log(pd.DataFrame(per_cycle))
+    same = (np.sign(df).nunique(axis=1) == 1) & df.notna().all(axis=1)
+    return np.exp(df.mean(axis=1).where(same, 0.0).clip(-np.log(cap), np.log(cap)))

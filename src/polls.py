@@ -2,7 +2,8 @@
 
 - weight = sqrt(sample / 1000) * 0.5 ** (age_days / HALF_LIFE); age = days from fieldwork end to `as_of`
 - house effect = SHRINK * (pollster's final 2024 poll - 2024 result), in points, per party;
-  pollsters with no 2024 poll get none. Applied to national and metro polls alike.
+  pollsters with no 2024 poll, or whose final poll ended more than FINAL_POLL_DAYS before election
+  day, get none (an early poll's miss is mostly late movement, e.g. Ipsos 2024 missed MK's surge). Applied to national and metro polls alike.
 - uncertainty per party = sqrt(weighted spread across polls^2 + HIST_ERR^2), in points
 - metro weight (how far the forecast moves towards a metro's polls) grows with effective sample size
 
@@ -22,13 +23,15 @@ HALF_LIFE = 30.0     # days
 SHRINK = 0.5         # one election of evidence per pollster: keep half the measured lean
 HIST_ERR = 2.0       # points: typical error of a final-poll average in SA (2024: ANC +2, MK -1.5)
 METRO_K = 800.0      # effective sample at which a metro forecast moves halfway to its polls
+FINAL_POLL_DAYS = 21  # only final polls this close to election day measure a pollster's lean
 
 
 def house_effects():
-    f = pd.read_csv(CONFIG / "polls_2024_final.csv")
+    f = pd.read_csv(CONFIG / "polls_2024_final.csv", parse_dates=["fieldwork_end"])
     actual = f[f.pollster == "ACTUAL"].iloc[0]
+    f = f[(f.pollster != "ACTUAL") & ((actual.fieldwork_end - f.fieldwork_end).dt.days <= FINAL_POLL_DAYS)]
     out = {}
-    for r in f[f.pollster != "ACTUAL"].itertuples(index=False):
+    for r in f.itertuples(index=False):
         out[r.pollster] = {p: SHRINK * (getattr(r, p) - actual[p])
                            for p in PARTIES if p in f.columns and pd.notna(getattr(r, p))}
     return out

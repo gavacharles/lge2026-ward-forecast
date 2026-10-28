@@ -19,7 +19,7 @@ COL = {"ANC": "#22a05a", "DA": "#3b7ddd", "MK": "#8a5cc2", "EFF": "#d6334a", "IF
        "FFP": "#f07f2a", "ASA": "#2fb3a6", "OTH": "#8a8f98"}
 NAME = {"FFP": "FF+", "ASA": "ActionSA", "OTH": "Others"}
 BG, INK, MUTED, GRID = "#fcfcfb", "#17201c", "#5b6660", "#dde2de"
-SOURCE = "LGE 2026 Ward Forecast · gavacharles.github.io/lge2026-ward-forecast · Data: IEC, MDB, polls to 26 Oct 2026"
+SOURCE = "LGE 2026 Ward Forecast · gavacharles.github.io/lge2026-ward-forecast · Data: IEC (results, candidate lists 23 Oct), MDB, polls to 15 Oct 2026"
 METROS = {"JHB": "Johannesburg", "CPT": "Cape Town", "ETH": "eThekwini", "TSH": "Tshwane", "EKU": "Ekurhuleni",
           "NMA": "N. Mandela Bay", "BUF": "Buffalo City", "MAN": "Mangaung"}
 
@@ -52,7 +52,7 @@ def clean(ax, grid_x=True):
 def wards_by_party(nat):
     rows = [r for r in nat if r["party"] != "OTH"] + [r for r in nat if r["party"] == "OTH"]
     rows = sorted(rows, key=lambda r: r["exp"])
-    fig = frame("The ANC is favoured in most wards, but MK and the DA eat into it",
+    fig = frame("The ANC is favoured in most wards; the DA, MK and IFP split most of the rest",
                 "Expected wards won (sum of each ward's win chance), out of 4,485. Label: expected · favoured in")
     ax = fig.add_axes([0.16, 0.12, 0.74, 0.68])
     y = np.arange(len(rows))
@@ -70,7 +70,9 @@ def wards_by_party(nat):
 def metro_seats(m):
     order = ["CPT", "JHB", "TSH", "EKU", "NMA", "ETH", "BUF", "MAN"]
     parts = ["ANC", "DA", "MK", "EFF", "ASA"]
-    fig = frame("Seven of eight metros are heading for hung councils",
+    hung = int((m.loc[order, "p_hung"] > 0.5).sum())
+    words = dict(enumerate(["None", "One", "Two", "Three", "Four", "Five", "Six", "Seven", "Eight"]))
+    fig = frame(f"{words[hung]} of eight metros are heading for hung councils",
                 "Expected council seats, as a share of each council. Dashed line: majority. Only Cape Town is likely to clear it")
     ax = fig.add_axes([0.25, 0.1, 0.71, 0.7])
     for i, code in enumerate(order[::-1]):
@@ -121,21 +123,25 @@ def backtest(bt):
 
 
 def kzn_byelections(summary):
-    eff = summary["byelection_province_effects"]["KZN"]
-    parties = [p for p in ["ANC", "ASA", "EFF", "IFP", "FFP", "DA", "PA", "MK"] if p in eff]
-    vals = sorted(((np.exp(eff[p]) - 1, p) for p in parties))
-    fig = frame("KwaZulu-Natal by-elections: MK has slipped, the ANC has recovered",
-                "~40 KZN ward by-elections since June 2024 vs the same voting districts in the 2024 national vote,\n"
-                "relative to the national trend, after shrinkage. The IFP has held level")
+    """Wards favoured in KZN under the published (by-election-led) and poll-led readings."""
+    sc = summary["scenarios"]
+    parties = ["MK", "IFP", "ANC", "DA"]
+    fig = frame("KwaZulu-Natal: polls and by-elections tell different stories",
+                f"Wards favoured in KZN. In {summary['kzn_region']['byelections']} by-elections outside eThekwini, "
+                "MK has run well behind its 2024 result,\nbut national polls still put it near 2024. "
+                "The published forecast follows the by-elections")
     ax = fig.add_axes([0.14, 0.12, 0.8, 0.62])
-    y = np.arange(len(vals))
-    ax.barh(y, [v for v, _ in vals], color=[COL[p] for _, p in vals], height=0.62)
-    for i, (v, p) in enumerate(vals):
-        ax.text(v + (0.008 if v >= 0 else -0.008), i, f"{v:+.0%}", va="center", ha="left" if v >= 0 else "right", fontsize=10.5)
-    ax.axvline(0, color=INK, linewidth=1)
-    ax.set_yticks(y, [name(p) for _, p in vals])
-    ax.set_xlim(-0.35, 0.35)
-    ax.xaxis.set_major_formatter(lambda v, _: f"{v:+.0%}")
+    y = np.arange(len(parties))
+    for k, (key, label, alpha) in enumerate([("byelection", "By-election-led (published)", 1.0),
+                                              ("poll", "Poll-led", 0.45)]):
+        vals = [sc[key]["kzn"]["favourites"].get(p, 0) for p in parties]
+        yy = y + (0.2 if k == 0 else -0.2)
+        ax.barh(yy, vals, height=0.38, color=[COL[p] for p in parties], alpha=alpha)
+        for v, yv in zip(vals, yy):
+            ax.text(v + 6, yv, f"{v} · {label}", va="center", fontsize=10)
+    ax.set_yticks(y, [name(p) for p in parties])
+    ax.invert_yaxis()
+    ax.set_xlim(0, max(sc["poll"]["kzn"]["favourites"].get("MK", 0), 450) * 1.45)
     clean(ax)
     fig.savefig(OUT / "04_kzn_byelections.png")
     plt.close(fig)
