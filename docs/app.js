@@ -1,7 +1,7 @@
 (async () => {
   const PARTY = {
-    ANC: { name: 'ANC', color: '#22a05a' }, DA: { name: 'DA', color: '#3b7ddd' }, MK: { name: 'MK', color: '#8c7a3a' },
-    EFF: { name: 'EFF', color: '#d6334a' }, IFP: { name: 'IFP', color: '#e0a21b' }, PA: { name: 'PA', color: '#9a6fd6' },
+    ANC: { name: 'ANC', color: '#22a05a' }, DA: { name: 'DA', color: '#3b7ddd' }, MK: { name: 'MK', color: '#8a5cc2' },
+    EFF: { name: 'EFF', color: '#d6334a' }, IFP: { name: 'IFP', color: '#e0a21b' }, PA: { name: 'PA', color: '#c45a9b' },
     FFP: { name: 'FF+', color: '#f07f2a' }, ASA: { name: 'ActionSA', color: '#2fb3a6' }, OTH: { name: 'Other', color: '#8a8f98' },
   };
   const RATE_COLOR = { 'Toss-up': '#c2362f', Lean: '#e3a54a', Likely: '#9fb7c4', Safe: '#dfe4e1' };
@@ -306,6 +306,21 @@
         el('div', { className: 'lab' }, el('span', {}, label), el('span', {}, (v * 100).toFixed(1) + '%')),
         el('div', { className: 'track' }, el('div', { className: 'fill', style: `width:${Math.max(2, (v - lo) / (hi - lo) * 100)}%` })))));
   }
+  // ---------- shareable link state: #view=rating&party=MK&muni=JHB&ward=79800001&section=coalitions ----------
+  function applyHash() {
+    const q = new URLSearchParams(location.hash.slice(1));
+    const v = q.get('view');
+    if (v && document.querySelector(`.seg button[data-mode="${v}"]`)) {
+      if (q.get('party') && P.includes(q.get('party'))) { shareParty = q.get('party'); sharePick.value = shareParty; }
+      document.querySelector(`.seg button[data-mode="${v}"]`).click();
+    }
+    if (q.get('prov')) zoomTo((w) => w.prov === q.get('prov'));
+    if (q.get('muni') && F.munis[q.get('muni')]) zoomTo((w) => w.m === q.get('muni'));
+    if (q.get('ward') && byId[q.get('ward')]) select(q.get('ward'), !q.get('muni'));
+    if (q.get('section')) { const s = document.getElementById(q.get('section')); if (s) s.scrollIntoView(); }
+  }
+  applyHash();
+  window.addEventListener('hashchange', applyHash);
   btBox.append(el('p', { className: 'note' }, 'Bars start at 85%. In both years the model was called with the actual national result standing in for perfect polls; real poll error is added in the forecast simulations.'));
 })().catch((err) => {
   const lede = document.getElementById('lede');

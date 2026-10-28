@@ -1,0 +1,264 @@
+"""Static visuals for posts (PNG, 1600x900): charts and maps from the forecast outputs.
+
+Writes to content/visuals/. Party colours match the site; every mark is labelled directly, so no
+reading depends on colour alone (ANC green vs EFF red is not separable for red-green colour blindness).
+"""
+import json
+
+import geopandas as gpd
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from matplotlib.patches import Patch
+
+import byelections as BE
+from paths import OUTPUTS, PROJECT, RAW
+
+OUT = PROJECT / "content" / "visuals"
+COL = {"ANC": "#22a05a", "DA": "#3b7ddd", "MK": "#8a5cc2", "EFF": "#d6334a", "IFP": "#e0a21b", "PA": "#c45a9b",
+       "FFP": "#f07f2a", "ASA": "#2fb3a6", "OTH": "#8a8f98"}
+NAME = {"FFP": "FF+", "ASA": "ActionSA", "OTH": "Others"}
+BG, INK, MUTED, GRID = "#fcfcfb", "#17201c", "#5b6660", "#dde2de"
+SOURCE = "LGE 2026 Ward Forecast · gavacharles.github.io/lge2026-ward-forecast · Data: IEC, MDB, polls to 26 Oct 2026"
+METROS = {"JHB": "Johannesburg", "CPT": "Cape Town", "ETH": "eThekwini", "TSH": "Tshwane", "EKU": "Ekurhuleni",
+          "NMA": "N. Mandela Bay", "BUF": "Buffalo City", "MAN": "Mangaung"}
+
+plt.rcParams.update({"font.family": "Avenir Next", "font.size": 13, "text.color": INK, "axes.labelcolor": MUTED,
+                     "xtick.color": MUTED, "ytick.color": INK, "axes.edgecolor": GRID, "figure.facecolor": BG,
+                     "axes.facecolor": BG, "savefig.facecolor": BG})
+
+
+def name(p):
+    return NAME.get(p, p)
+
+
+def frame(title, subtitle):
+    fig = plt.figure(figsize=(8, 4.5), dpi=200)
+    fig.text(0.04, 0.93, title, fontsize=17, fontfamily="Georgia", ha="left", va="top", color=INK)
+    fig.text(0.04, 0.855, subtitle, fontsize=10.5, ha="left", va="top", color=MUTED)
+    fig.text(0.04, 0.03, SOURCE, fontsize=7.5, ha="left", color=MUTED)
+    return fig
+
+
+def clean(ax, grid_x=True):
+    for s in ("top", "right", "left"):
+        ax.spines[s].set_visible(False)
+    ax.tick_params(length=0)
+    if grid_x:
+        ax.grid(axis="x", color=GRID, linewidth=0.8)
+        ax.set_axisbelow(True)
+
+
+def wards_by_party(nat):
+    rows = [r for r in nat if r["party"] != "OTH"] + [r for r in nat if r["party"] == "OTH"]
+    rows = sorted(rows, key=lambda r: r["exp"])
+    fig = frame("The ANC is favoured in most wards, but MK and the DA eat into it",
+                "Expected wards won (sum of each ward's win chance), out of 4,485. Label: expected · favoured in")
+    ax = fig.add_axes([0.16, 0.12, 0.74, 0.68])
+    y = np.arange(len(rows))
+    ax.barh(y, [r["exp"] for r in rows], color=[COL[r["party"]] for r in rows], height=0.62)
+    for i, r in enumerate(rows):
+        ax.text(r["exp"] + 25, i, f"{r['exp']:,.0f} · {r['fav']:,}", va="center", fontsize=10.5, color=INK)
+    ax.set_yticks(y, [name(r["party"]) for r in rows])
+    ax.set_xlim(0, 2800)
+    ax.xaxis.set_major_formatter(lambda v, _: f"{v:,.0f}")
+    clean(ax)
+    fig.savefig(OUT / "01_wards_by_party.png")
+    plt.close(fig)
+
+
+def metro_seats(m):
+    order = ["CPT", "JHB", "TSH", "EKU", "NMA", "ETH", "BUF", "MAN"]
+    parts = ["ANC", "DA", "MK", "EFF", "ASA"]
+    fig = frame("Seven of eight metros are heading for hung councils",
+                "Expected council seats, as a share of each council. Dashed line: majority. Only Cape Town is likely to clear it")
+    ax = fig.add_axes([0.25, 0.1, 0.71, 0.7])
+    for i, code in enumerate(order[::-1]):
+        r = m.loc[code]
+        left = 0.0
+        segs = [(p, r[f"seats_{p}"]) for p in parts]
+        segs.append(("OTH", r.council_seats - sum(v for _, v in segs)))
+        for p, v in segs:
+            share = v / r.council_seats
+            ax.barh(i, share, left=left, color=COL[p], height=0.66, edgecolor=BG, linewidth=1)
+            if share > 0.075:
+                ax.text(left + share / 2, i, f"{ {'OTH': 'Oth', 'ASA': 'ASA'}.get(p, name(p)) } {v:.0f}", ha="center", va="center",
+                        fontsize=8.5, color="white", fontweight="bold")
+            left += share
+    ax.axvline(0.5, color=INK, linestyle=(0, (4, 3)), linewidth=1)
+    ax.set_yticks(range(len(order)), [f"{METROS[c]}  ({m.loc[c].council_seats:.0f})" for c in order[::-1]])
+    ax.set_xlim(0, 1)
+    ax.xaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    clean(ax, grid_x=False)
+    fig.savefig(OUT / "02_metro_seats.png")
+    plt.close(fig)
+
+
+def backtest(bt):
+    fig = frame("Tested on 2016 and 2021, the model beat simple rules both times",
+                "Share of ward winners called correctly, using only data available before each election")
+    ax = fig.add_axes([0.32, 0.13, 0.62, 0.66])
+    methods = [("naive_prev_lge", "Previous local winner"), ("naive_npe", "Last national-ballot winner"),
+               ("model_byelections", "This model")]
+    for j, year in enumerate(["2016", "2021"]):
+        for i, (k, lab) in enumerate(methods):
+            v = bt[year][k]
+            y = j * 4 + i
+            c = "#3b7ddd" if k.startswith("model") else "#9aa39e"
+            ax.plot([0.85, v], [y, y], color=GRID, linewidth=2, zorder=1)
+            ax.scatter(v, y, s=90, color=c, zorder=2, edgecolor=BG, linewidth=1.5)
+            ax.text(v + 0.003, y, f"{v:.1%}", va="center", fontsize=10.5,
+                    fontweight="bold" if k.startswith("model") else "normal")
+        ax.text(0.851, j * 4 + 2.75, year, fontsize=12, fontfamily="Georgia", va="center")
+    ax.set_yticks([j * 4 + i for j in range(2) for i in range(3)], [lab for _ in range(2) for _, lab in methods])
+    ax.set_xlim(0.85, 0.96)
+    ax.set_ylim(-0.7, 7.3)
+    ax.invert_yaxis()
+    ax.xaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    clean(ax)
+    fig.savefig(OUT / "03_backtest.png")
+    plt.close(fig)
+
+
+def kzn_byelections(summary):
+    eff = summary["byelection_province_effects"]["KZN"]
+    parties = [p for p in ["ANC", "ASA", "EFF", "IFP", "FFP", "DA", "PA", "MK"] if p in eff]
+    vals = sorted(((np.exp(eff[p]) - 1, p) for p in parties))
+    fig = frame("KwaZulu-Natal by-elections: MK has slipped, the ANC has recovered",
+                "~40 KZN ward by-elections since June 2024 vs the same voting districts in the 2024 national vote,\n"
+                "relative to the national trend, after shrinkage. The IFP has held level")
+    ax = fig.add_axes([0.14, 0.12, 0.8, 0.62])
+    y = np.arange(len(vals))
+    ax.barh(y, [v for v, _ in vals], color=[COL[p] for _, p in vals], height=0.62)
+    for i, (v, p) in enumerate(vals):
+        ax.text(v + (0.008 if v >= 0 else -0.008), i, f"{v:+.0%}", va="center", ha="left" if v >= 0 else "right", fontsize=10.5)
+    ax.axvline(0, color=INK, linewidth=1)
+    ax.set_yticks(y, [name(p) for _, p in vals])
+    ax.set_xlim(-0.35, 0.35)
+    ax.xaxis.set_major_formatter(lambda v, _: f"{v:+.0%}")
+    clean(ax)
+    fig.savefig(OUT / "04_kzn_byelections.png")
+    plt.close(fig)
+
+
+def coalitions(m, blocs):
+    order = ["JHB", "TSH", "EKU", "ETH", "NMA", "BUF", "MAN", "CPT"]
+    keys = list(blocs)
+    M = np.array([[m.loc[c, f"p_bloc_{b}"] for b in keys] for c in order])
+    fig = frame("Coalition maths: ANC + DA has the numbers in most metros",
+                "Chance that each group of parties holds a majority of council seats. Arithmetic, not a prediction of deals")
+    ax = fig.add_axes([0.2, 0.1, 0.76, 0.56])
+    ax.imshow(M, cmap=plt.matplotlib.colors.LinearSegmentedColormap.from_list("b", [BG, "#3b7ddd"]), vmin=0, vmax=1, aspect="auto")
+    for i in range(len(order)):
+        for j in range(len(keys)):
+            v = M[i, j]
+            ax.text(j, i, f"{v:.0%}", ha="center", va="center", fontsize=10, color="white" if v > 0.6 else INK)
+    ax.set_xticks(range(len(keys)), [" +\n".join(name(p) for p in blocs[b]) for b in keys], fontsize=8.5)
+    ax.xaxis.tick_top()
+    ax.set_yticks(range(len(order)), [METROS[c] for c in order])
+    for s in ax.spines.values():
+        s.set_visible(False)
+    ax.tick_params(length=0)
+    fig.savefig(OUT / "05_coalitions.png")
+    plt.close(fig)
+
+
+def nowcast():
+    r = pd.read_csv(OUTPUTS / "nowcast_replay_2021.csv")
+    fig = frame("On election night, every count sharpens the call",
+                "2021 replay: share of wards called correctly as voting districts report in random order")
+    ax = fig.add_axes([0.1, 0.17, 0.84, 0.6])
+    ax.plot(r.reported, r.accuracy, color="#3b7ddd", linewidth=2, marker="o", markersize=7)
+    for x, v in zip(r.reported, r.accuracy):
+        ax.text(x, v + 0.004, f"{v:.1%}", ha="center", fontsize=10.5)
+    ax.set_xlim(-0.03, 0.8)
+    ax.set_ylim(0.88, 0.97)
+    ax.xaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    ax.yaxis.set_major_formatter(lambda v, _: f"{v:.0%}")
+    ax.set_xlabel("Voting districts reported")
+    ax.grid(axis="y", color=GRID, linewidth=0.8)
+    for s in ("top", "right", "left"):
+        ax.spines[s].set_visible(False)
+    ax.tick_params(length=0)
+    fig.savefig(OUT / "06_nowcast_replay.png")
+    plt.close(fig)
+
+
+def maps(w):
+    g = gpd.read_file(RAW / "mdb_wards_2026.geojson")
+    g = g.merge(w, left_on="WardID", right_on="ward", how="left")
+    g["fav"] = g.favourite.where(g.favourite.isin(list(COL)), "OTH")
+    g = g.to_crs("ESRI:102022")  # Africa Albers equal area
+
+    def base(title, subtitle):
+        fig = plt.figure(figsize=(8, 4.5), dpi=200)
+        fig.text(0.04, 0.93, title, fontsize=17, fontfamily="Georgia", va="top")
+        fig.text(0.04, 0.855, subtitle, fontsize=10.5, va="top", color=MUTED)
+        fig.text(0.04, 0.03, SOURCE, fontsize=7.5, color=MUTED)
+        ax = fig.add_axes([0.02, 0.07, 0.62, 0.76])
+        ax.set_axis_off()
+        return fig, ax
+
+    fig, ax = base("Who is favoured in each of South Africa's 4,485 wards",
+                   "Colour: forecast favourite. Paler: less certain (under 75% chance)")
+    sure = g.win_prob >= 0.75
+    for p, c in COL.items():
+        s = g[g.fav == p]
+        s[sure[s.index]].plot(ax=ax, color=c, linewidth=0)
+        s[~sure[s.index]].plot(ax=ax, color=c, alpha=0.45, linewidth=0)
+    counts = w.favourite.where(w.favourite.isin(list(COL)), "OTH").value_counts()
+    handles = [Patch(color=COL[p], label=f"{name(p)}  {counts.get(p, 0):,}") for p in COL if counts.get(p, 0)]
+    fig.legend(handles=handles, loc="center left", bbox_to_anchor=(0.66, 0.47), frameon=False, fontsize=11,
+               title="Wards favoured", title_fontsize=11)
+    fig.savefig(OUT / "07_map_favourites.png")
+    plt.close(fig)
+
+    fig, ax = base(f"{(w.rating == 'Toss-up').sum()} toss-up wards will decide the coalitions",
+                   "Wards where no party has more than a 60% chance (red) or 60-75% (orange)")
+    g.plot(ax=ax, color="#e6e9e7", linewidth=0)
+    g[g.rating == "Lean"].plot(ax=ax, color="#f0a35a", linewidth=0)
+    g[g.rating == "Toss-up"].plot(ax=ax, color="#d6334a", linewidth=0)
+    by_prov = w[w.rating == "Toss-up"].province.value_counts()
+    txt = "\n".join(f"{p}  {n}" for p, n in by_prov.items())
+    fig.text(0.68, 0.72, "Toss-ups by province", fontsize=11, fontweight="bold", va="top")
+    fig.text(0.68, 0.66, txt, fontsize=10.5, va="top", linespacing=1.5)
+    fig.savefig(OUT / "08_map_tossups.png")
+    plt.close(fig)
+
+    flips = w.flip
+    fig, ax = base(f"{flips.sum():,} wards are forecast to change hands",
+                   "Coloured by the new favourite. Grey: same favourite as the estimated 2021 winner")
+    g.plot(ax=ax, color="#e6e9e7", linewidth=0)
+    for p, c in COL.items():
+        s = g[(g.fav == p) & g.flip.fillna(False).astype(bool)]
+        if len(s):
+            s.plot(ax=ax, color=c, linewidth=0)
+    f = w[w.flip]
+    top = (f.winner_2021_est.where(f.winner_2021_est.isin(list(COL)), "OTH").map(name) + " to "
+           + f.favourite.where(f.favourite.isin(list(COL)), "OTH").map(name)).value_counts().head(6)
+    fig.text(0.68, 0.72, "Biggest shifts", fontsize=11, fontweight="bold", va="top")
+    fig.text(0.68, 0.66, "\n".join(f"{k}  {v}" for k, v in top.items()), fontsize=10.5, va="top", linespacing=1.5)
+    fig.savefig(OUT / "09_map_flips.png")
+    plt.close(fig)
+
+
+def main():
+    OUT.mkdir(parents=True, exist_ok=True)
+    summary = json.load(open(OUTPUTS / "forecast_summary_2026.json"))
+    bt = json.load(open(OUTPUTS / "backtest.json"))["results"]
+    site = json.load(open(PROJECT / "docs" / "data" / "forecast.json"))
+    m = pd.read_csv(OUTPUTS / "municipality_forecast_2026.csv").set_index("muni")
+    w = pd.read_csv(OUTPUTS / "ward_forecast_2026.csv", dtype={"ward": str})
+    blocs = json.load(open(PROJECT / "config" / "coalitions.json"))
+    wards_by_party(site["national"])
+    metro_seats(m)
+    backtest(bt)
+    kzn_byelections(summary)
+    coalitions(m, blocs)
+    nowcast()
+    maps(w)
+    print("visuals ->", OUT)
+
+
+if __name__ == "__main__":
+    main()
