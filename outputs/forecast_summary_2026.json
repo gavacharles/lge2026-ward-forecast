@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-27",
+ "as_of": "2026-10-28",
  "national_share": {
   "ANC": 29.72,
   "DA": 24.62,
@@ -12,7 +12,7 @@
   "OTH": 12.44
  },
  "polls": {
-  "as_of": "2026-10-27",
+  "as_of": "2026-10-28",
   "house_effects": {
    "SRF": {
     "ANC": 1.0100000000000016,
@@ -61,7 +61,7 @@
      "DA": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 39,
+    "n_eff": 38,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -86,7 +86,7 @@
      "FFP": 2.08,
      "ASA": 2.06
     },
-    "n_eff": 805,
+    "n_eff": 786,
     "weight": 0.5,
     "polls": "Ipsos, MarkData, SABI"
    },
@@ -111,7 +111,7 @@
      "FFP": 2.83,
      "ASA": 3.08
     },
-    "n_eff": 452,
+    "n_eff": 441,
     "weight": 0.36,
     "polls": "Ipsos, MarkData"
    },
@@ -136,8 +136,8 @@
      "FFP": 2.16,
      "ASA": 2.21
     },
-    "n_eff": 1247,
-    "weight": 0.61,
+    "n_eff": 1219,
+    "weight": 0.6,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
    "JHB": {
@@ -161,8 +161,8 @@
      "FFP": 2.25,
      "ASA": 2.48
     },
-    "n_eff": 1234,
-    "weight": 0.61,
+    "n_eff": 1206,
+    "weight": 0.6,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
    "MAN": {
@@ -178,7 +178,7 @@
      "MK": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 39,
+    "n_eff": 38,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -203,8 +203,8 @@
      "FFP": 2.83,
      "ASA": 2.01
     },
-    "n_eff": 429,
-    "weight": 0.35,
+    "n_eff": 419,
+    "weight": 0.34,
     "polls": "Ipsos, MarkData"
    },
    "TSH": {
@@ -226,8 +226,8 @@
      "FFP": 2.48,
      "ASA": 2.28
     },
-    "n_eff": 1248,
-    "weight": 0.61,
+    "n_eff": 1220,
+    "weight": 0.6,
     "polls": "Ipsos, MarkData, SABI, SRF"
    }
   },
@@ -251,7 +251,7 @@
    "FFP": 2.01,
    "ASA": 2.2
   },
-  "national_n_eff": 3264.8258924653755,
+  "national_n_eff": 3190.2571660247754,
   "national_pollsters": [
    "Ipsos",
    "SABI",
@@ -388,11 +388,11 @@
  "favourites": {
   "ANC": 2482,
   "DA": 1061,
-  "MK": 747,
-  "IFP": 111,
+  "MK": 746,
+  "IFP": 112,
+  "PA": 29,
   "EFF": 28,
-  "PA": 28,
-  "FFP": 20,
+  "FFP": 19,
   "UNITED DEMOCRATIC MOVEMENT": 2,
   "ASA": 2,
   "AFRICAN PEOPLE'S MOVEMENT": 1,
@@ -401,21 +401,21 @@
   "GOOD": 1
  },
  "expected_wards": {
-  "ANC": 2307.3,
-  "DA": 1036.5,
-  "MK": 699.0,
-  "EFF": 123.9,
-  "IFP": 162.3,
+  "ANC": 2307.5,
+  "DA": 1036.3,
+  "MK": 698.9,
+  "EFF": 123.8,
+  "IFP": 162.5,
   "PA": 50.1,
-  "FFP": 44.1,
-  "ASA": 26.6,
+  "FFP": 44.0,
+  "ASA": 26.7,
   "LOCAL_TOP": 35.3
  },
  "ratings": {
-  "Safe": 2520,
-  "Likely": 919,
+  "Safe": 2521,
+  "Likely": 918,
   "Lean": 558,
   "Toss-up": 488
  },
- "flips": 1232
+ "flips": 1231
 }
