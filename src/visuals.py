@@ -148,23 +148,55 @@ def kzn_byelections(summary):
 
 
 def coalitions(m, blocs):
-    order = ["JHB", "TSH", "EKU", "ETH", "NMA", "BUF", "MAN", "CPT"]
-    keys = list(blocs)
-    M = np.array([[m.loc[c, f"p_bloc_{b}"] for b in keys] for c in order])
-    fig = frame("Coalition maths: ANC + DA has the numbers in most metros",
-                "Chance that each group of parties holds a majority of council seats. Arithmetic, not a prediction of deals")
-    ax = fig.add_axes([0.2, 0.1, 0.76, 0.56])
-    ax.imshow(M, cmap=plt.matplotlib.colors.LinearSegmentedColormap.from_list("b", [BG, "#3b7ddd"]), vmin=0, vmax=1, aspect="auto")
-    for i in range(len(order)):
-        for j in range(len(keys)):
-            v = M[i, j]
-            ax.text(j, i, f"{v:.0%}", ha="center", va="center", fontsize=10, color="white" if v > 0.6 else INK)
-    ax.set_xticks(range(len(keys)), [" +\n".join(name(p) for p in blocs[b]) for b in keys], fontsize=8.5)
-    ax.xaxis.tick_top()
-    ax.set_yticks(range(len(order)), [METROS[c] for c in order])
-    for s in ax.spines.values():
-        s.set_visible(False)
-    ax.tick_params(length=0)
+    """Three ways to a majority, per metro: one party alone, ANC + DA, or another coalition (best two shown).
+    Each panel is its own chance (they can overlap)."""
+    order = ["CPT", "NMA", "MAN", "BUF", "TSH", "EKU", "JHB", "ETH"]
+    parties = ["ANC", "DA", "MK", "EFF", "IFP", "PA", "FFP", "ASA"]
+    others = [b for b, ps in blocs.items() if not {"ANC", "DA"} <= set(ps)]
+    short = {"FFP": "FF+", "ASA": "ASA"}
+    label = lambda b: ", ".join(short.get(p, p) for p in blocs[b])
+    fig = frame("Who can govern? Three ways to a majority in the metros",
+                "Chance of a majority of council seats, from the simulations. The panels overlap: where ANC + DA have\n"
+                "the numbers, another coalition may too. Arithmetic, not a prediction of which deals get made")
+    panels = [("1. One party alone", 0.19, 0.2), ("2. ANC + DA together", 0.42, 0.2), ("3. Best other coalitions", 0.655, 0.31)]
+    y = np.arange(len(order))[::-1]
+    for t, (title, x0, wd) in enumerate(panels):
+        ax = fig.add_axes([x0, 0.1, wd, 0.6])
+        ax.set_xlim(0, 1)
+        ax.set_ylim(-0.6, len(order) - 0.4)
+        ax.set_title(title, fontsize=11, loc="left", color=INK, fontweight="bold")
+        for yy, c in zip(y, order):
+            r = m.loc[c]
+            if t < 2:
+                ax.barh(yy, 1, color=GRID, height=0.62, alpha=0.5)
+            if t == 0:
+                p = max(parties, key=lambda q: r[f"p_majority_{q}"])
+                v = r[f"p_majority_{p}"]
+                ax.barh(yy, v, color=COL[p], height=0.62)
+                ax.text(0.03, yy, f"{name(p)} {v:.0%}" if v >= 0.005 else "none", va="center", fontsize=9.5,
+                        color="white" if v > 0.35 else INK, fontweight="bold")
+            elif t == 1:
+                v = r["p_bloc_ANC+DA"]
+                ax.barh(yy, v / 2, color=COL["ANC"], height=0.62)
+                ax.barh(yy, v / 2, left=v / 2, color=COL["DA"], height=0.62)
+                ax.text(0.03, yy, f"{v:.0%}", va="center", fontsize=9.5, color="white" if v > 0.2 else INK,
+                        fontweight="bold")
+            else:
+                best = [b for b in sorted(others, key=lambda b: -r[f"p_bloc_{b}"])[:2] if r[f"p_bloc_{b}"] >= 0.01]
+                if not best:
+                    ax.text(0.02, yy, "none above 1%", va="center", fontsize=8.5, color=MUTED)
+                for j, b in enumerate(best):
+                    v = r[f"p_bloc_{b}"]
+                    yb = yy + (0.17 if j == 0 else -0.17) * (len(best) > 1)
+                    ax.barh(yb, 0.42, color=GRID, height=0.28, alpha=0.5)
+                    ax.barh(yb, v * 0.42, color="#5b6b7a" if j == 0 else "#9aa6b2", height=0.28)
+                    ax.text(0.44, yb, f"{label(b)} {v:.0%}", va="center", fontsize=8.3, color=INK,
+                            fontweight="bold" if j == 0 else "normal")
+        ax.set_yticks(y, [METROS[c] for c in order] if t == 0 else [])
+        ax.set_xticks([])
+        for sp in ax.spines.values():
+            sp.set_visible(False)
+        ax.tick_params(length=0)
     fig.savefig(OUT / "05_coalitions.png")
     plt.close(fig)
 

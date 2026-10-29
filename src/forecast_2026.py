@@ -212,6 +212,7 @@ def run(n_sims=2000, as_of=None, scenario="byelection"):
         mstats["p_largest_seats"].round(3).add_prefix("p_largest_"),
         mstats["p_majority_seats"].round(3).add_prefix("p_majority_"),
         mstats["p_bloc_majority"].round(3).add_prefix("p_bloc_"),
+        mstats["ladder"].round(3).add_prefix("ladder_"),
         named.groupby(wards.muni.values).sum().round(1).add_prefix("exp_wards_"),
     ])
     muni["n_wards"] = wards.groupby("muni").size()

@@ -196,6 +196,14 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
     seat_major = np.zeros((len(munis), k))
     bloc_major = {b: np.zeros(len(munis)) for b in (blocs or {})}
     bloc_idx = {b: [parties.index(p) for p in ps if p in parties] for b, ps in (blocs or {}).items()}
+    # "governing ladder": each seat simulation counts once, at the first rung that has a majority:
+    # one party alone, then ANC + DA, then the other listed coalitions (smallest first), else a wider deal
+    if "ANC" in parties and "DA" in parties:
+        ancda = [parties.index("ANC"), parties.index("DA")]
+        others = sorted(((b, ix) for b, ix in bloc_idx.items()
+                         if not {parties.index("ANC"), parties.index("DA")} <= set(ix)), key=lambda t: len(t[1]))
+        rungs = [f"single_{p}" for p in parties] + ["ANC+DA"] + [b for b, _ in others] + ["wider"]
+        ladder = np.zeros((len(munis), len(rungs)))
     nat_draws = np.zeros((n, k))
     for it in range(n):
         e = (rng.normal(0, 1, k).astype(np.float32)[None, :] * sd_nat[None, :]
@@ -226,6 +234,15 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
                 seat_major[m] += st > seats_n[m] / 2
                 for b, ix in bloc_idx.items():
                     bloc_major[b][m] += st[ix].sum() > seats_n[m] / 2
+                if blocs and "ANC" in parties and "DA" in parties:
+                    half = seats_n[m] / 2
+                    if st.max() > half:
+                        r = int(st.argmax())
+                    elif st[ancda].sum() > half:
+                        r = k
+                    else:
+                        r = next((k + 1 + j for j, (_, ix) in enumerate(others) if st[ix].sum() > half), len(rungs) - 1)
+                    ladder[m, r] += 1
     probs = pd.DataFrame(wins / n, index=S.index, columns=labels)
     mstats = {
         "share": pd.DataFrame(mshare / n, index=munis, columns=parties),
@@ -240,4 +257,6 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
         mstats["p_largest_seats"] = pd.DataFrame(seat_largest / ns, index=munis, columns=parties)
         mstats["p_majority_seats"] = pd.DataFrame(seat_major / ns, index=munis, columns=parties)
         mstats["p_bloc_majority"] = pd.DataFrame({b: v / ns for b, v in bloc_major.items()}, index=munis)
+        if blocs and "ANC" in parties and "DA" in parties:
+            mstats["ladder"] = pd.DataFrame(ladder / ns, index=munis, columns=rungs)
     return probs, mstats
