@@ -180,6 +180,27 @@
   zProv.addEventListener('change', () => { fillZMuni(); zoomTo((w) => !zProv.value || w.prov === zProv.value); });
   zMuni.addEventListener('change', () => { if (zMuni.value) zoomTo((w) => w.m === zMuni.value); });
 
+  // ---------- scorecard (after the result) ----------
+  if (F.scorecard) {
+    const sc = F.scorecard, tb = document.querySelector('#score-table tbody');
+    const pc = (v) => (v * 100).toFixed(1) + '%';
+    const rows = [
+      ['Ward winners called correctly', pc(sc.ward_accuracy)],
+      ['Carry forward the 2021 winner', pc(sc.baseline_prev_local)],
+      ['Carry forward the 2024 national leader', pc(sc.baseline_national_leader)],
+      ['What the forecast expected', pc(sc.expected_accuracy)],
+      ['Councils: largest party right', pc(sc.councils.largest_party_correct)],
+      ['Councils: majority or hung right', pc(sc.councils.hung_status_correct)],
+    ];
+    if (sc.kzn) rows.push(['KZN: by-election-led (published) / poll-led', `${pc(sc.kzn.published_byelection_led)} / ${pc(sc.kzn.poll_led)}`]);
+    for (const p of ['ANC', 'DA', 'MK', 'EFF', 'IFP']) {
+      const n = sc.national[p];
+      rows.push([`${p} national: forecast / actual`, `${n.forecast} / ${n.actual}${n.in_90 === false ? ' (outside range)' : ''}`]);
+    }
+    for (const [k, v] of rows) tb.append(el('tr', {}, el('td', {}, k), el('td', { className: 'n' }, v)));
+    document.getElementById('scorecard').hidden = false;
+  }
+
   // ---------- KwaZulu-Natal scenarios ----------
   if (F.scenarios) {
     const kt = document.querySelector('#kzn-table tbody');

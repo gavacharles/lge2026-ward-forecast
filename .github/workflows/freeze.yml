@@ -1,0 +1,37 @@
+name: Freeze final forecast
+
+# Locks the pre-election forecast on the eve of polling day so it can be scored against the result.
+on:
+  schedule:
+    - cron: "0 19 3 11 *"   # 21:00 SAST, Tuesday 3 November
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: site-update
+  cancel-in-progress: false
+
+jobs:
+  freeze:
+    runs-on: ubuntu-latest
+    env:
+      ELECTION_DATA: ${{ github.workspace }}/data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - run: python src/freeze.py
+      - name: Commit and tag
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add frozen
+          git commit -m "Freeze final pre-election forecast"
+          git pull --rebase
+          git tag -a forecast-final -m "Final pre-election forecast, frozen $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push && git push origin forecast-final

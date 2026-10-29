@@ -30,6 +30,9 @@ python src/pipeline.py --refresh-data  # re-download IEC results and by-election
 python src/update_polls.py             # refresh polls from Wikipedia
 python src/nowcast.py replay           # test the election-night nowcast on 2021
 python src/nowcast.py live             # election night: pull IEC results and update ward calls
+python src/freeze.py                   # lock the final pre-election forecast in frozen/ (automatic, 3 Nov 21:00 SAST)
+python src/score.py 2026               # after results are declared: score frozen/ against them
+python src/score.py test2021           # check the scorer on the 2021 backtest (outputs/scorecard_test2021.md)
 ```
 
 Polls are in `config/polls_2026.csv` (from Wikipedia) and `config/polls_2026_extra.csv` (by hand).
@@ -40,6 +43,10 @@ Ward candidates are in `config/candidates_2026.csv` (`python src/fetch_candidate
 - **Forecast:** on every change to config, code or data, and daily. Re-runs everything and commits
   the site.
 - **Poll update:** daily. Opens a pull request when Wikipedia's poll tables change.
+- **Freeze:** 21:00 SAST on 3 November. Copies the final forecast to `frozen/`, tags the commit
+  `forecast-final`, and stops the daily forecast from changing it.
+- **Score:** run by hand once the IEC declares results. Scores the frozen forecast and adds a
+  "How did the forecast do?" section to the site.
 - **Election night:** every 15 minutes, 4–6 November. Runs the live nowcast. `src/election_night.sh`
   is a local backup.
 

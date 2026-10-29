@@ -156,7 +156,18 @@ wards was lost in 2021.
 - **Seats** use 2 × wards as council size, and district councils are not modelled.
 - **Coalitions** show only which party groups would have a majority, not which deals will be made.
 
-## 7. Independence and corrections
+## 7. Accountability: scoring the forecast
+
+The final pre-election forecast is frozen at 21:00 on 3 November 2026. It is copied with a manifest of
+file fingerprints (SHA-256) and the commit is tagged `forecast-final`, so it can't be changed after
+voting starts. Once the IEC declares the results, the frozen forecast is scored against them and the
+scorecard is published on the site and in the repository. The scorecard covers:
+ward winners against simple baselines; Brier score and calibration; national, provincial and ward vote
+shares (including whether results fell inside the 90% ranges); council largest party, majority or hung,
+and metro seats; and which KwaZulu-Natal reading, by-election-led or poll-led, was closer. The same
+scorer, run on the 2021 backtest, reproduces its published figures (`outputs/scorecard_test2021.md`).
+
+## 8. Independence and corrections
 
 The model, data and every setting are public. Errors can be reported as issues on the GitHub repository.
 Changes to the method are recorded in the repository's history. This statement describes the forecast

@@ -28,7 +28,9 @@ jobs:
           python-version: "3.11"
           cache: pip
       - run: pip install -r requirements.txt
-      - run: python src/pipeline.py
+      - name: Run the forecast (skipped once the final forecast is frozen)
+        if: hashFiles('frozen/manifest.json') == ''
+        run: python src/pipeline.py
       - name: Commit updated forecast
         run: |
           git config user.name "github-actions[bot]"

@@ -90,6 +90,7 @@ def main():
         "scenarios": summary.get("scenarios"),
         "kzn_region": {k: summary["kzn_region"][k] for k in ("byelections", "weight")} if summary.get("kzn_region") else None,
         "expected_correct": summary.get("expected_correct_calls"),
+        "scorecard": json.load(open(OUTPUTS / "scorecard_2026.json")) if (OUTPUTS / "scorecard_2026.json").exists() else None,
         "candidates": summary.get("used_candidate_list", False),
         "backtest": {k: {kk: round(vv, 4) for kk, vv in v.items()} for k, v in bt["results"].items()},
         "live": nowcast is not None,
