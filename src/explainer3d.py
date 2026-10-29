@@ -48,23 +48,45 @@ def font(sz, bold=False):
     return ImageFont.truetype(d + ("DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"), sz)
 
 
-def compose(img, title, sub, count, count_color):
-    """Render between a header band (title, subtitle, live counter) and a footer band (sources, credit)."""
+LEGEND = [("ANC", "ANC"), ("DA", "DA"), ("MK", "MK"), ("IFP", "IFP"), ("EFF", "EFF"), ("PA", "PA"),
+          ("FFP", "FF+"), ("ASA", "ActionSA"), ("OTH", "Local / independent")]
+
+
+def compose(img, title, sub, count, count_color, tossup=False):
+    """Render between a header band (title, subtitle, live counter), a colour legend band, and a footer band
+    (sources, credit), so no text sits on the scene."""
     im = Image.fromarray(img)
     W, H = im.size
-    head, foot = 112, 46
-    can = Image.new("RGB", (W, H + head + foot), "#0f1419")
+    ft, fs, fc_ = font(32, True), font(20), font(26, True)
+    sub_lines = textwrap.wrap(sub, 100)[:2]
+    head = 18 + 40 + 28 * 2 + 8 + 36  # fixed: every frame must be the same size
+    leg, foot = 50, 56
+    can = Image.new("RGB", (W, H + head + leg + foot), "#0f1419")
     can.paste(im, (0, head))
     d = ImageDraw.Draw(can)
-    d.text((18, 10), title, font=font(26, True), fill="white")
-    d.text((18, 46), sub, font=font(15), fill="#b9c2c9")
-    d.text((18, 72), count, font=font(20, True), fill=count_color)
+    d.text((22, 14), title, font=ft, fill="white")
+    for i, ln in enumerate(sub_lines):
+        d.text((22, 58 + 28 * i), ln, font=fs, fill="#c5cdd3")
+    d.text((22, head - 40), count, font=fc_, fill=count_color)
+    # legend band
+    items = LEGEND + ([("TOSS", "Toss-up")] if tossup else [])
+    fl = font(18, True)
+    widths = [26 + 10 + d.textlength(lb, font=fl) + 24 for _, lb in items]
+    x = (W - sum(widths) + 24) / 2
+    y = H + head + 12
+    for (code, lb), wd in zip(items, widths):
+        d.rounded_rectangle([x, y + 1, x + 26, y + 25], radius=4, fill=TOSS if code == "TOSS" else COL[code])
+        d.text((x + 36, y + 2), lb, font=fl, fill="#e6ebef")
+        x += wd
+    # footer band
+    yf = H + head + leg
+    d.line([(22, yf), (W - 22, yf)], fill="#26303a", width=1)
     cr = "Credit: Gava Charles"
-    fc = font(17, True)
-    cw = d.textlength(cr, font=fc)
-    d.text((W - cw - 14, H + head + 12), cr, font=fc, fill="white")
-    for i, ln in enumerate(textwrap.wrap(SRC, 150)[:2]):
-        d.text((18, H + head + 6 + i * 16), ln, font=font(12), fill="#9aa4ab")
+    fcr = font(20, True)
+    cw = d.textlength(cr, font=fcr)
+    d.text((W - cw - 18, yf + 16), cr, font=fcr, fill="white")
+    for i, ln in enumerate(textwrap.wrap(SRC, 118)[:2]):
+        d.text((22, yf + 8 + i * 20), ln, font=font(14), fill="#a7b1b8")
     return can
 
 
@@ -165,9 +187,9 @@ def main():
     gif, stills = [], {}
     frame_no = {"n": 0}
 
-    def shoot(title, sub, count, colour, still=None):
+    def shoot(title, sub, count, colour, still=None, tossup=False):
         p.render()  # screenshot alone does not redraw changed data
-        can = compose(p.screenshot(return_img=True), title, sub, count, colour)
+        can = compose(p.screenshot(return_img=True), title, sub, count, colour, tossup)
         mp4.append_data(np.asarray(can))
         if frame_no["n"] % 4 == 0:
             gif.append(can.resize((640, int(can.height * 640 / can.width)), Image.LANCZOS)
@@ -278,7 +300,7 @@ def main():
         cam(-90 + 14 * k / 69, 58 - 6 * k / 69, span * (1.6 - 0.08 * k / 69))
         cnt = tally(w.favourite.values) + f"  ·  toss-ups {int(toss.sum()):,}"
         shoot(T, S, cnt if k < 45 else f"Find your ward:  {URL}", "#ffffff" if k < 45 else "#7fe3ff",
-              still="6" if k == 44 else None)
+              still="6" if k == 44 else None, tossup=True)
 
     mp4.close()
     p.close()
