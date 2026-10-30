@@ -1,18 +1,18 @@
 {
- "as_of": "2026-10-29",
+ "as_of": "2026-10-30",
  "national_share": {
-  "ANC": 29.91,
+  "ANC": 29.92,
   "DA": 24.7,
   "MK": 10.73,
   "EFF": 8.14,
-  "IFP": 5.14,
+  "IFP": 5.13,
   "PA": 2.19,
   "FFP": 3.01,
   "ASA": 3.67,
   "OTH": 12.52
  },
  "polls": {
-  "as_of": "2026-10-29",
+  "as_of": "2026-10-30",
   "house_effects": {
    "SRF": {
     "ANC": 1.0100000000000016,
@@ -52,7 +52,7 @@
      "DA": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 38,
+    "n_eff": 37,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -77,8 +77,8 @@
      "FFP": 2.08,
      "ASA": 2.06
     },
-    "n_eff": 768,
-    "weight": 0.49,
+    "n_eff": 751,
+    "weight": 0.48,
     "polls": "Ipsos, MarkData, SABI"
    },
    "EKU": {
@@ -102,8 +102,8 @@
      "FFP": 2.83,
      "ASA": 3.42
     },
-    "n_eff": 431,
-    "weight": 0.35,
+    "n_eff": 421,
+    "weight": 0.34,
     "polls": "Ipsos, MarkData"
    },
    "ETH": {
@@ -127,8 +127,8 @@
      "FFP": 2.16,
      "ASA": 2.28
     },
-    "n_eff": 1191,
-    "weight": 0.6,
+    "n_eff": 1164,
+    "weight": 0.59,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
    "JHB": {
@@ -152,8 +152,8 @@
      "FFP": 2.25,
      "ASA": 2.57
     },
-    "n_eff": 1179,
-    "weight": 0.6,
+    "n_eff": 1152,
+    "weight": 0.59,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
    "MAN": {
@@ -169,7 +169,7 @@
      "MK": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 38,
+    "n_eff": 37,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -194,8 +194,8 @@
      "FFP": 2.83,
      "ASA": 2.1
     },
-    "n_eff": 410,
-    "weight": 0.34,
+    "n_eff": 400,
+    "weight": 0.33,
     "polls": "Ipsos, MarkData"
    },
    "TSH": {
@@ -217,8 +217,8 @@
      "FFP": 2.48,
      "ASA": 2.27
     },
-    "n_eff": 1192,
-    "weight": 0.6,
+    "n_eff": 1165,
+    "weight": 0.59,
     "polls": "Ipsos, MarkData, SABI, SRF"
    }
   },
@@ -242,7 +242,7 @@
    "FFP": 2.01,
    "ASA": 2.46
   },
-  "national_n_eff": 3117.391591649896,
+  "national_n_eff": 3046.190269293796,
   "national_pollsters": [
    "Ipsos",
    "SABI",
@@ -380,9 +380,9 @@
   "ANC": 2501,
   "DA": 1070,
   "IFP": 402,
-  "MK": 386,
+  "MK": 385,
   "EFF": 35,
-  "PA": 33,
+  "PA": 34,
   "FFP": 22,
   "ASA": 20,
   "AFRICAN TRANSFORMATION MOVEMENT": 5,
@@ -395,21 +395,21 @@
   "GAMAGARA COMMUNITY FORUM": 1
  },
  "expected_wards": {
-  "ANC": 2305.8,
-  "DA": 1048.7,
-  "MK": 433.2,
-  "EFF": 136.1,
-  "IFP": 353.5,
-  "PA": 56.9,
+  "ANC": 2306.9,
+  "DA": 1048.0,
+  "MK": 433.1,
+  "EFF": 136.0,
+  "IFP": 353.4,
+  "PA": 57.0,
   "FFP": 52.5,
-  "ASA": 53.6,
-  "LOCAL_TOP": 44.7
+  "ASA": 53.4,
+  "LOCAL_TOP": 44.6
  },
  "ratings": {
-  "Safe": 2263,
-  "Likely": 955,
-  "Toss-up": 659,
-  "Lean": 608
+  "Safe": 2264,
+  "Likely": 953,
+  "Toss-up": 657,
+  "Lean": 611
  },
  "flips": 1006,
  "scenario": "byelection",
@@ -512,11 +512,11 @@
  "scenarios": {
   "byelection": {
    "national_share": {
-    "ANC": 29.91,
+    "ANC": 29.92,
     "DA": 24.7,
     "MK": 10.73,
     "EFF": 8.14,
-    "IFP": 5.14,
+    "IFP": 5.13,
     "PA": 2.19,
     "FFP": 3.01,
     "ASA": 3.67,
@@ -525,9 +525,9 @@
    "kzn": {
     "favourites": {
      "IFP": 402,
-     "MK": 303,
+     "MK": 302,
      "ANC": 111,
-     "DA": 103,
+     "DA": 104,
      "AFRICAN PEOPLE'S MOVEMENT": 1,
      "NATIONAL FREEDOM PARTY": 1
     },
@@ -572,15 +572,15 @@
    },
    "kzn": {
     "favourites": {
-     "MK": 658,
-     "IFP": 121,
-     "DA": 108,
+     "MK": 656,
+     "IFP": 122,
+     "DA": 109,
      "ANC": 33,
      "AFRICAN PEOPLE'S MOVEMENT": 1
     },
     "favourites_outside_ethekwini": {
-     "MK": 581,
-     "IFP": 119,
+     "MK": 580,
+     "IFP": 120,
      "DA": 75,
      "ANC": 33,
      "AFRICAN PEOPLE'S MOVEMENT": 1
@@ -596,7 +596,7 @@
      "DA": 9.6,
      "MK": 42.6,
      "EFF": 2.3,
-     "IFP": 19.6,
+     "IFP": 19.7,
      "PA": 0.2,
      "FFP": 0.5,
      "ASA": 0.9,
