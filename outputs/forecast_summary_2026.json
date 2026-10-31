@@ -1,5 +1,5 @@
 {
- "as_of": "2026-10-30",
+ "as_of": "2026-10-31",
  "national_share": {
   "ANC": 29.92,
   "DA": 24.7,
@@ -12,7 +12,7 @@
   "OTH": 12.52
  },
  "polls": {
-  "as_of": "2026-10-30",
+  "as_of": "2026-10-31",
   "house_effects": {
    "SRF": {
     "ANC": 1.0100000000000016,
@@ -52,7 +52,7 @@
      "DA": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 37,
+    "n_eff": 36,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -77,7 +77,7 @@
      "FFP": 2.08,
      "ASA": 2.06
     },
-    "n_eff": 751,
+    "n_eff": 734,
     "weight": 0.48,
     "polls": "Ipsos, MarkData, SABI"
    },
@@ -102,7 +102,7 @@
      "FFP": 2.83,
      "ASA": 3.42
     },
-    "n_eff": 421,
+    "n_eff": 412,
     "weight": 0.34,
     "polls": "Ipsos, MarkData"
    },
@@ -127,7 +127,7 @@
      "FFP": 2.16,
      "ASA": 2.28
     },
-    "n_eff": 1164,
+    "n_eff": 1137,
     "weight": 0.59,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
@@ -152,8 +152,8 @@
      "FFP": 2.25,
      "ASA": 2.57
     },
-    "n_eff": 1152,
-    "weight": 0.59,
+    "n_eff": 1125,
+    "weight": 0.58,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
    "MAN": {
@@ -169,7 +169,7 @@
      "MK": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 37,
+    "n_eff": 36,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -194,7 +194,7 @@
      "FFP": 2.83,
      "ASA": 2.1
     },
-    "n_eff": 400,
+    "n_eff": 391,
     "weight": 0.33,
     "polls": "Ipsos, MarkData"
    },
@@ -217,7 +217,7 @@
      "FFP": 2.48,
      "ASA": 2.27
     },
-    "n_eff": 1165,
+    "n_eff": 1138,
     "weight": 0.59,
     "polls": "Ipsos, MarkData, SABI, SRF"
    }
@@ -242,7 +242,7 @@
    "FFP": 2.01,
    "ASA": 2.46
   },
-  "national_n_eff": 3046.190269293796,
+  "national_n_eff": 2976.615187387833,
   "national_pollsters": [
    "Ipsos",
    "SABI",
@@ -378,11 +378,11 @@
  "wards": 4485,
  "favourites": {
   "ANC": 2501,
-  "DA": 1070,
+  "DA": 1071,
   "IFP": 402,
   "MK": 385,
   "EFF": 35,
-  "PA": 34,
+  "PA": 33,
   "FFP": 22,
   "ASA": 20,
   "AFRICAN TRANSFORMATION MOVEMENT": 5,
@@ -396,18 +396,18 @@
  },
  "expected_wards": {
   "ANC": 2306.9,
-  "DA": 1048.0,
+  "DA": 1048.2,
   "MK": 433.1,
-  "EFF": 136.0,
+  "EFF": 135.9,
   "IFP": 353.4,
   "PA": 57.0,
   "FFP": 52.5,
-  "ASA": 53.4,
+  "ASA": 53.3,
   "LOCAL_TOP": 44.6
  },
  "ratings": {
-  "Safe": 2264,
-  "Likely": 953,
+  "Safe": 2263,
+  "Likely": 954,
   "Toss-up": 657,
   "Lean": 611
  },
