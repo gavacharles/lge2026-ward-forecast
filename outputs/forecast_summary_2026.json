@@ -1,5 +1,5 @@
 {
- "as_of": "2026-11-01",
+ "as_of": "2026-11-02",
  "national_share": {
   "ANC": 29.92,
   "DA": 24.7,
@@ -12,7 +12,7 @@
   "OTH": 12.52
  },
  "polls": {
-  "as_of": "2026-11-01",
+  "as_of": "2026-11-02",
   "house_effects": {
    "SRF": {
     "ANC": 1.0100000000000016,
@@ -52,7 +52,7 @@
      "DA": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 35,
+    "n_eff": 34,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -77,7 +77,7 @@
      "FFP": 2.08,
      "ASA": 2.06
     },
-    "n_eff": 717,
+    "n_eff": 700,
     "weight": 0.47,
     "polls": "Ipsos, MarkData, SABI"
    },
@@ -102,7 +102,7 @@
      "FFP": 2.83,
      "ASA": 3.42
     },
-    "n_eff": 402,
+    "n_eff": 393,
     "weight": 0.33,
     "polls": "Ipsos, MarkData"
    },
@@ -127,7 +127,7 @@
      "FFP": 2.16,
      "ASA": 2.28
     },
-    "n_eff": 1111,
+    "n_eff": 1086,
     "weight": 0.58,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
@@ -152,8 +152,8 @@
      "FFP": 2.25,
      "ASA": 2.57
     },
-    "n_eff": 1100,
-    "weight": 0.58,
+    "n_eff": 1075,
+    "weight": 0.57,
     "polls": "Ipsos, MarkData, SABI, SRF"
    },
    "MAN": {
@@ -169,7 +169,7 @@
      "MK": 2.83,
      "EFF": 2.83
     },
-    "n_eff": 35,
+    "n_eff": 34,
     "weight": 0.2,
     "polls": "Ipsos"
    },
@@ -194,7 +194,7 @@
      "FFP": 2.83,
      "ASA": 2.1
     },
-    "n_eff": 382,
+    "n_eff": 373,
     "weight": 0.32,
     "polls": "Ipsos, MarkData"
    },
@@ -217,7 +217,7 @@
      "FFP": 2.48,
      "ASA": 2.27
     },
-    "n_eff": 1112,
+    "n_eff": 1087,
     "weight": 0.58,
     "polls": "Ipsos, MarkData, SABI, SRF"
    }
@@ -242,7 +242,7 @@
    "FFP": 2.01,
    "ASA": 2.46
   },
-  "national_n_eff": 2908.6292025487924,
+  "national_n_eff": 2842.1960197495036,
   "national_pollsters": [
    "Ipsos",
    "SABI",
@@ -395,14 +395,14 @@
   "GAMAGARA COMMUNITY FORUM": 1
  },
  "expected_wards": {
-  "ANC": 2307.9,
-  "DA": 1047.3,
-  "MK": 433.1,
+  "ANC": 2308.0,
+  "DA": 1047.4,
+  "MK": 433.0,
   "EFF": 135.8,
   "IFP": 353.4,
   "PA": 57.1,
-  "FFP": 52.5,
-  "ASA": 53.3,
+  "FFP": 52.4,
+  "ASA": 53.2,
   "LOCAL_TOP": 44.6
  },
  "ratings": {
@@ -600,7 +600,7 @@
      "PA": 0.2,
      "FFP": 0.5,
      "ASA": 0.9,
-     "OTH": 11.9
+     "OTH": 11.8
     }
    }
   }
