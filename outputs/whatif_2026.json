@@ -1,0 +1,610 @@
+{
+ "as_of": "2026-11-02",
+ "whatif": {
+  "As published": {
+   "national": {
+    "ANC": 29.29,
+    "DA": 25.3,
+    "IFP": 5.2,
+    "MK": 10.41,
+    "EFF": 8.6
+   },
+   "wards_favoured": {
+    "ANC": 2458,
+    "DA": 1127,
+    "IFP": 410,
+    "MK": 371,
+    "EFF": 39
+   },
+   "expected_wards": {
+    "ANC": 2255.0,
+    "DA": 1101.0,
+    "IFP": 357.1,
+    "MK": 418.3,
+    "EFF": 154.6
+   },
+   "tossups": 657,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 0.942,
+     "p_hung": 0.975
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.875,
+     "p_hung": 0.998
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.822,
+     "p_hung": 1.0
+    },
+    "EKU": {
+     "largest": "DA",
+     "p_largest": 0.685,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.875,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "DA",
+     "p_largest": 0.74,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.95,
+     "p_hung": 0.98
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.308
+    }
+   },
+   "hung_councils": 150
+  },
+  "ANC +3": {
+   "national": {
+    "ANC": 32.02,
+    "DA": 24.01,
+    "IFP": 5.09,
+    "MK": 10.0,
+    "EFF": 8.15
+   },
+   "wards_favoured": {
+    "ANC": 2600,
+    "DA": 1045,
+    "IFP": 404,
+    "MK": 342,
+    "EFF": 26
+   },
+   "expected_wards": {
+    "ANC": 2432.1,
+    "DA": 1022.4,
+    "IFP": 352.2,
+    "MK": 389.8,
+    "EFF": 116.0
+   },
+   "tossups": 555,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 0.988,
+     "p_hung": 0.948
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.715,
+     "p_hung": 1.0
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.888,
+     "p_hung": 0.995
+    },
+    "EKU": {
+     "largest": "ANC",
+     "p_largest": 0.515,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.755,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "DA",
+     "p_largest": 0.585,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.952,
+     "p_hung": 0.985
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.408
+    }
+   },
+   "hung_councils": 147
+  },
+  "ANC -3": {
+   "national": {
+    "ANC": 26.52,
+    "DA": 26.58,
+    "IFP": 5.31,
+    "MK": 10.83,
+    "EFF": 9.05
+   },
+   "wards_favoured": {
+    "ANC": 2254,
+    "DA": 1236,
+    "IFP": 412,
+    "MK": 415,
+    "EFF": 67
+   },
+   "expected_wards": {
+    "ANC": 2051.5,
+    "DA": 1184.9,
+    "IFP": 362.1,
+    "MK": 451.4,
+    "EFF": 205.3
+   },
+   "tossups": 763,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 0.86,
+     "p_hung": 0.992
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.965,
+     "p_hung": 0.992
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.685,
+     "p_hung": 1.0
+    },
+    "EKU": {
+     "largest": "DA",
+     "p_largest": 0.848,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.945,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "DA",
+     "p_largest": 0.855,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.955,
+     "p_hung": 0.975
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.208
+    }
+   },
+   "hung_councils": 149
+  },
+  "DA +3": {
+   "national": {
+    "ANC": 27.87,
+    "DA": 28.09,
+    "IFP": 5.09,
+    "MK": 9.99,
+    "EFF": 8.19
+   },
+   "wards_favoured": {
+    "ANC": 2347,
+    "DA": 1270,
+    "IFP": 405,
+    "MK": 359,
+    "EFF": 39
+   },
+   "expected_wards": {
+    "ANC": 2157.9,
+    "DA": 1226.2,
+    "IFP": 353.7,
+    "MK": 406.2,
+    "EFF": 151.5
+   },
+   "tossups": 658,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 0.868,
+     "p_hung": 0.985
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.972,
+     "p_hung": 0.97
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.615,
+     "p_hung": 0.998
+    },
+    "EKU": {
+     "largest": "DA",
+     "p_largest": 0.832,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.968,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "DA",
+     "p_largest": 0.912,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.835,
+     "p_hung": 0.988
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.08
+    }
+   },
+   "hung_councils": 148
+  },
+  "DA -3": {
+   "national": {
+    "ANC": 30.71,
+    "DA": 22.49,
+    "IFP": 5.31,
+    "MK": 10.83,
+    "EFF": 9.01
+   },
+   "wards_favoured": {
+    "ANC": 2544,
+    "DA": 1019,
+    "IFP": 412,
+    "MK": 378,
+    "EFF": 42
+   },
+   "expected_wards": {
+    "ANC": 2347.0,
+    "DA": 979.7,
+    "IFP": 360.5,
+    "MK": 429.6,
+    "EFF": 157.1
+   },
+   "tossups": 618,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 0.98,
+     "p_hung": 0.965
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.66,
+     "p_hung": 1.0
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.912,
+     "p_hung": 0.998
+    },
+    "EKU": {
+     "largest": "ANC",
+     "p_largest": 0.49,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.7,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "ANC",
+     "p_largest": 0.538,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.988,
+     "p_hung": 0.955
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.638
+    }
+   },
+   "hung_councils": 153
+  }
+ },
+ "ingredients": {
+  "History only": {
+   "national": {
+    "ANC": 35.6,
+    "DA": 22.93,
+    "IFP": 5.9,
+    "MK": 13.47,
+    "EFF": 9.35
+   },
+   "wards_favoured": {
+    "ANC": 2671,
+    "DA": 881,
+    "IFP": 334,
+    "MK": 540,
+    "EFF": 26
+   },
+   "expected_wards": {
+    "ANC": 2544.5,
+    "DA": 857.9,
+    "IFP": 322.6,
+    "MK": 572.4,
+    "EFF": 111.1
+   },
+   "tossups": 414,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 1.0,
+     "p_hung": 0.5
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.68,
+     "p_hung": 0.998
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.972,
+     "p_hung": 0.87
+    },
+    "EKU": {
+     "largest": "DA",
+     "p_largest": 0.555,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.565,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "DA",
+     "p_largest": 0.528,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.955,
+     "p_hung": 0.845
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.118
+    }
+   },
+   "hung_councils": 123
+  },
+  "+ polls": {
+   "national": {
+    "ANC": 29.11,
+    "DA": 25.2,
+    "IFP": 3.68,
+    "MK": 12.34,
+    "EFF": 8.55
+   },
+   "wards_favoured": {
+    "ANC": 2463,
+    "DA": 1115,
+    "IFP": 144,
+    "MK": 683,
+    "EFF": 33
+   },
+   "expected_wards": {
+    "ANC": 2265.7,
+    "DA": 1094.0,
+    "IFP": 182.6,
+    "MK": 649.2,
+    "EFF": 140.2
+   },
+   "tossups": 512,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 0.928,
+     "p_hung": 0.978
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.89,
+     "p_hung": 0.998
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.802,
+     "p_hung": 0.998
+    },
+    "EKU": {
+     "largest": "DA",
+     "p_largest": 0.632,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.85,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "DA",
+     "p_largest": 0.692,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.95,
+     "p_hung": 0.98
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.35
+    }
+   },
+   "hung_councils": 156
+  },
+  "+ by-election swing, candidates": {
+   "national": {
+    "ANC": 29.11,
+    "DA": 25.2,
+    "IFP": 3.68,
+    "MK": 12.34,
+    "EFF": 8.55
+   },
+   "wards_favoured": {
+    "ANC": 2443,
+    "DA": 1091,
+    "IFP": 144,
+    "MK": 690,
+    "EFF": 37
+   },
+   "expected_wards": {
+    "ANC": 2243.3,
+    "DA": 1077.8,
+    "IFP": 184.1,
+    "MK": 649.0,
+    "EFF": 143.6
+   },
+   "tossups": 559,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 0.942,
+     "p_hung": 0.975
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.875,
+     "p_hung": 0.998
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.822,
+     "p_hung": 1.0
+    },
+    "EKU": {
+     "largest": "DA",
+     "p_largest": 0.685,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.875,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "DA",
+     "p_largest": 0.74,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.95,
+     "p_hung": 0.98
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.308
+    }
+   },
+   "hung_councils": 153
+  },
+  "+ KZN by-elections (published)": {
+   "national": {
+    "ANC": 29.29,
+    "DA": 25.3,
+    "IFP": 5.2,
+    "MK": 10.41,
+    "EFF": 8.6
+   },
+   "wards_favoured": {
+    "ANC": 2458,
+    "DA": 1127,
+    "IFP": 410,
+    "MK": 371,
+    "EFF": 39
+   },
+   "expected_wards": {
+    "ANC": 2255.0,
+    "DA": 1101.0,
+    "IFP": 357.1,
+    "MK": 418.3,
+    "EFF": 154.6
+   },
+   "tossups": 657,
+   "metros": {
+    "BUF": {
+     "largest": "ANC",
+     "p_largest": 0.942,
+     "p_hung": 0.975
+    },
+    "NMA": {
+     "largest": "DA",
+     "p_largest": 0.875,
+     "p_hung": 0.998
+    },
+    "MAN": {
+     "largest": "ANC",
+     "p_largest": 0.822,
+     "p_hung": 1.0
+    },
+    "EKU": {
+     "largest": "DA",
+     "p_largest": 0.685,
+     "p_hung": 1.0
+    },
+    "JHB": {
+     "largest": "DA",
+     "p_largest": 0.875,
+     "p_hung": 1.0
+    },
+    "TSH": {
+     "largest": "DA",
+     "p_largest": 0.74,
+     "p_hung": 1.0
+    },
+    "ETH": {
+     "largest": "MK",
+     "p_largest": 0.95,
+     "p_hung": 0.98
+    },
+    "CPT": {
+     "largest": "DA",
+     "p_largest": 1.0,
+     "p_hung": 0.308
+    }
+   },
+   "hung_councils": 150
+  }
+ }
+}
