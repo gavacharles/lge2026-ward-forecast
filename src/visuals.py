@@ -19,7 +19,7 @@ COL = {"ANC": "#22a05a", "DA": "#3b7ddd", "MK": "#8a5cc2", "EFF": "#d6334a", "IF
        "FFP": "#f07f2a", "ASA": "#2fb3a6", "OTH": "#8a8f98"}
 NAME = {"FFP": "FF+", "ASA": "ActionSA", "OTH": "Others"}
 BG, INK, MUTED, GRID = "#fcfcfb", "#17201c", "#5b6660", "#dde2de"
-SOURCE = "LGE 2026 Ward Forecast · gavacharles.github.io/lge2026-ward-forecast · Data: IEC (results, candidate lists 23 Oct), MDB, polls to 15 Oct 2026"
+SOURCE = "LGE 2026 Ward Forecast · gavacharles.github.io/lge2026-ward-forecast · Data: IEC (results, candidate lists 23 Oct), MDB, polls to mid-Oct 2026"
 METROS = {"JHB": "Johannesburg", "CPT": "Cape Town", "ETH": "eThekwini", "TSH": "Tshwane", "EKU": "Ekurhuleni",
           "NMA": "N. Mandela Bay", "BUF": "Buffalo City", "MAN": "Mangaung"}
 

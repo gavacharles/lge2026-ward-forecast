@@ -8,7 +8,8 @@
 - metro weight (how far the forecast moves towards a metro's polls) grows with effective sample size
 
 Polls come from config/polls_2026.csv (refreshed from Wikipedia by update_polls.py) plus
-config/polls_2026_extra.csv (hand-entered polls Wikipedia lacks). Run directly to print averages.
+config/polls_2026_extra.csv (hand-entered polls Wikipedia lacks, or hand-checked corrections from the
+pollster's own release). Run directly to print averages.
 """
 import json
 from datetime import date
@@ -41,6 +42,9 @@ def aggregate(as_of=None):
     as_of = pd.Timestamp(as_of or date.today())
     files = [CONFIG / "polls_2026.csv", CONFIG / "polls_2026_extra.csv"]
     polls = pd.concat([pd.read_csv(f, parse_dates=["fieldwork_end"]) for f in files if f.exists()], ignore_index=True)
+    # a hand-checked row replaces Wikipedia's row for the same pollster, area and month (it comes last)
+    month = polls.fieldwork_end.dt.to_period("M")
+    polls = polls[~polls.assign(month=month).duplicated(["pollster", "area", "month"], keep="last")]
     polls = polls[polls.fieldwork_end <= as_of]
     he = house_effects()
     age = (as_of - polls.fieldwork_end).dt.days.clip(lower=0)

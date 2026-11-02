@@ -229,7 +229,7 @@ def main():
 
     # Act 3: the 2026 forecast -----------------------------------------------------------------------------
     T = "The 2026 forecast"
-    S = "A per-party model, 29 polls, 218 by-elections and the IEC candidate lists move each ward to its 2026 favourite."
+    S = "A per-party model, 38 polls, 218 by-elections and the IEC candidate lists move each ward to its 2026 favourite."
     flips = (w.favourite != w.winner_2021_est).values
     rnd = np.random.default_rng(3).random(nw)
     for k in range(80):
