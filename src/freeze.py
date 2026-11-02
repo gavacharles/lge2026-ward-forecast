@@ -17,7 +17,7 @@ from paths import OUTPUTS, PROJECT
 
 FROZEN = PROJECT / "frozen"
 FILES = ["ward_forecast_2026.csv", "ward_forecast_2026_poll_scenario.csv", "municipality_forecast_2026.csv",
-         "forecast_summary_2026.json", "backtest.json"]
+         "forecast_summary_2026.json", "backtest.json", "sim_ward_totals_2026.csv", "sim_metro_largest_2026.csv"]
 
 
 def main(force=False):

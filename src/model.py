@@ -205,6 +205,8 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
         rungs = [f"single_{p}" for p in parties] + ["ANC+DA"] + [b for b, _ in others] + ["wider"]
         ladder = np.zeros((len(munis), len(rungs)))
     nat_draws = np.zeros((n, k))
+    ward_totals = np.zeros((n, k), int)
+    largest_draws = np.full((min(n, seat_sims), len(munis)), -1)
     for it in range(n):
         e = (rng.normal(0, 1, k).astype(np.float32)[None, :] * sd_nat[None, :]
              + rng.normal(0, 1, (len(munis), k)).astype(np.float32)[midx] * (sd_muni * scale[midx])[:, None]
@@ -224,6 +226,7 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
         y[:, oth] *= frac  # only the largest local party can win the ward
         win = y.argmax(1)
         wins[np.arange(len(S)), win] += 1
+        ward_totals[it] = np.bincount(win, minlength=k)
         if seats_n is not None and it < seat_sims:
             ww = np.zeros((len(munis), k), int)
             np.add.at(ww, (midx, win), 1)
@@ -231,6 +234,7 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
                 st = allocate(msum[m], ww[m], seats_n[m])
                 seat_sum[m] += st
                 seat_largest[m, st.argmax()] += 1
+                largest_draws[it, m] = st.argmax()
                 seat_major[m] += st > seats_n[m] / 2
                 for b, ix in bloc_idx.items():
                     bloc_major[b][m] += st[ix].sum() > seats_n[m] / 2
@@ -248,12 +252,14 @@ def simulate(S, weight, muni, local, sd_nat, sd_muni, sd_ward, n=1000, seed=7, m
         "share": pd.DataFrame(mshare / n, index=munis, columns=parties),
         "p_largest": pd.DataFrame(largest / n, index=munis, columns=parties),
         "p_majority": pd.DataFrame(majority / n, index=munis, columns=parties),
+        "ward_totals": pd.DataFrame(ward_totals, columns=labels),
         "national_interval": pd.DataFrame(np.quantile(nat_draws, [0.05, 0.5, 0.95], axis=0), index=["p05", "p50", "p95"],
                                           columns=parties),
     }
     if seats_n is not None:
         ns = min(n, seat_sims)
         mstats["seats"] = pd.DataFrame(seat_sum / ns, index=munis, columns=parties)
+        mstats["largest_draws"] = pd.DataFrame(np.array(parties)[largest_draws], columns=munis)
         mstats["p_largest_seats"] = pd.DataFrame(seat_largest / ns, index=munis, columns=parties)
         mstats["p_majority_seats"] = pd.DataFrame(seat_major / ns, index=munis, columns=parties)
         mstats["p_bloc_majority"] = pd.DataFrame({b: v / ns for b, v in bloc_major.items()}, index=munis)

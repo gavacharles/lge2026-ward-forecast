@@ -29,6 +29,7 @@ COLS = PARTIES + ["OTH"]
 NEW_OR_UNSTABLE = {"MK", "ASA", "PA"}  # too little 2011-2021 history: use pooled coefficients
 BYELECTION_SINCE = "2024-05-30"        # MK era: compare with the 2024 national ballot
 MAX_SD_LOG = 0.5
+METROS = ["BUF", "NMA", "MAN", "EKU", "JHB", "TSH", "ETH", "CPT"]
 
 
 def aggregate_all(S, weight, mask=None):
@@ -61,9 +62,14 @@ def apply_candidates(S, wards):
     return S.div(S.sum(axis=1), axis=0), True
 
 
-def run(n_sims=2000, as_of=None, scenario="byelection"):
+def run(n_sims=2000, as_of=None, scenario="byelection", poll_mod=None, use_polls=True, use_byelections=True,
+        use_candidates=True):
+    """One forecast. The last four arguments exist for what-if and ingredient runs (src/whatif.py); the published
+    forecast uses the defaults."""
     votes, other = M.load()
     poll = POLLS.aggregate(as_of)
+    if poll_mod:
+        poll = poll_mod(poll)
     bt = json.load(open(OUTPUTS / "backtest.json"))["params"]
     blocs = json.load(open(CONFIG / "coalitions.json"))
     meta = pd.read_parquet(INTERIM / "vd_meta.parquet")
@@ -101,70 +107,74 @@ def run(n_sims=2000, as_of=None, scenario="byelection"):
     resid = BE.residuals("1091", BYELECTION_SINCE, votes, "npe2024", PARTIES, comm, vd_muni)
     pe, ce = BE.effects(resid, bt["k_shrink"])
     adj = BE.ward_adjustment(prov, ward_comm, pe, ce, PARTIES, bt["alpha"])
-    S = S * adj[COLS].values
-    S = S.div(S.sum(axis=1), axis=0)
+    if use_byelections:
+        S = S * adj[COLS].values
+        S = S.div(S.sum(axis=1), axis=0)
 
     # 3) who is standing (optional input)
-    S, used_candidates = apply_candidates(S, wards)
+    used_candidates = False
+    if use_candidates:
+        S, used_candidates = apply_candidates(S, wards)
 
-    # 4) national level from polls. Independents and local parties (OTH) are under-measured by
-    #    polls, so they hold their 2021 ward-ballot level in the 2026 wards (persistence); the
-    #    polled parties share the rest in poll proportions.
-    oth_2021 = float((X_lge.OTH * weight).sum() / weight.sum())
-    cur = aggregate_all(S, weight)
-    cur["OTH"] = oth_2021
-    nat = poll_targets(poll["national"], cur)
-    nat["OTH"] = oth_2021
-    S = M.calibrate(S, weight, nat, COLS)
-
-    # 5) metros: move towards metro polls by their weight
     is_metro = np.zeros(len(S), bool)
     muni_scale = {}
-    for code, mp in poll["metros"].items():
-        msk = (wards.muni == code).values
-        if not msk.any():
-            continue
-        is_metro |= msk
-        cur = aggregate_all(S, weight, msk)
-        w = mp["weight"]
-        pt = poll_targets(mp["shares"], cur)
-        tgt = {p: float(np.exp(w * np.log(v) + (1 - w) * np.log(max(cur[p], 1e-6)))) for p, v in pt.items()}
-        S = M.calibrate(S, weight, tgt, COLS, mask=msk)
-        muni_scale[code] = 1 - 0.5 * w
-
-    # 5b) KZN outside eThekwini: by-elections as a regional poll (by-election scenario only)
     region = np.zeros(len(S), bool)
     region_info = None
-    if scenario == "byelection":
-        region = ((prov == "KZN") & (wards.muni != "ETH")).values
-        b, _ = BE.load("1091")
-        ratio, nb = BE.regional_levels("1091", BYELECTION_SINCE, votes, "npe2024", PARTIES, BE.kzn_region_wards(b.ward))
-        bias = pd.Series(bt.get("kzn_byelection_bias", {}), dtype=float).reindex(ratio.index).fillna(1.0)
-        wr = weight[region]
-        base = X_npe[region].mul(wr, axis=0).sum() / wr.sum()
-        cur = aggregate_all(S, weight, region)
-        tgt, w_region = BE.region_target(base, ratio * bias, nb, bt["k_shrink"], cur)
-        S = M.calibrate(S, weight, tgt, COLS, mask=region)
-        region_info = {"byelections": nb, "weight": round(w_region, 2), "ratio": ratio.round(3).to_dict(),
-                       "bias": bias.round(3).to_dict(), "before": (cur * 100).round(1).to_dict(),
-                       "after": (aggregate_all(S, weight, region) * 100).round(1).to_dict()}
+    if use_polls:
+        # 4) national level from polls. Independents and local parties (OTH) are under-measured by
+        #    polls, so they hold their 2021 ward-ballot level in the 2026 wards (persistence); the
+        #    polled parties share the rest in poll proportions.
+        oth_2021 = float((X_lge.OTH * weight).sum() / weight.sum())
+        cur = aggregate_all(S, weight)
+        cur["OTH"] = oth_2021
+        nat = poll_targets(poll["national"], cur)
+        nat["OTH"] = oth_2021
+        S = M.calibrate(S, weight, nat, COLS)
 
-    # 6) everything else absorbs the rest of the national target. In the by-election scenario MK and
-    #    IFP (whose levels KZN by-elections contradict) keep their modelled levels here, so their
-    #    national totals come out of the model rather than the polls.
-    W = weight.values
-    fixed = is_metro | region
-    fixed_votes = (S.values[fixed] * W[fixed, None]).sum(0)
-    rest_w = W[~fixed].sum()
-    floating = {"MK", "IFP"} if scenario == "byelection" else set()
-    rest_tgt = {p: max((nat[p] * W.sum() - fixed_votes[COLS.index(p)]) / rest_w, 0.001) for p in nat
-                if p not in floating}
-    if floating:
-        rest_cur = aggregate_all(S, weight, ~fixed)
-        keep = {p: float(rest_cur[p]) for p in floating}
-        scale = (1 - sum(keep.values())) / sum(rest_tgt.values())
-        rest_tgt = {p: v * scale for p, v in rest_tgt.items()} | keep
-    S = M.calibrate(S, weight, rest_tgt, COLS, mask=~fixed)
+        # 5) metros: move towards metro polls by their weight
+        for code, mp in poll["metros"].items():
+            msk = (wards.muni == code).values
+            if not msk.any():
+                continue
+            is_metro |= msk
+            cur = aggregate_all(S, weight, msk)
+            w = mp["weight"]
+            pt = poll_targets(mp["shares"], cur)
+            tgt = {p: float(np.exp(w * np.log(v) + (1 - w) * np.log(max(cur[p], 1e-6)))) for p, v in pt.items()}
+            S = M.calibrate(S, weight, tgt, COLS, mask=msk)
+            muni_scale[code] = 1 - 0.5 * w
+
+        # 5b) KZN outside eThekwini: by-elections as a regional poll (by-election scenario only)
+        if scenario == "byelection":
+            region = ((prov == "KZN") & (wards.muni != "ETH")).values
+            b, _ = BE.load("1091")
+            ratio, nb = BE.regional_levels("1091", BYELECTION_SINCE, votes, "npe2024", PARTIES, BE.kzn_region_wards(b.ward))
+            bias = pd.Series(bt.get("kzn_byelection_bias", {}), dtype=float).reindex(ratio.index).fillna(1.0)
+            wr = weight[region]
+            base = X_npe[region].mul(wr, axis=0).sum() / wr.sum()
+            cur = aggregate_all(S, weight, region)
+            tgt, w_region = BE.region_target(base, ratio * bias, nb, bt["k_shrink"], cur)
+            S = M.calibrate(S, weight, tgt, COLS, mask=region)
+            region_info = {"byelections": nb, "weight": round(w_region, 2), "ratio": ratio.round(3).to_dict(),
+                           "bias": bias.round(3).to_dict(), "before": (cur * 100).round(1).to_dict(),
+                           "after": (aggregate_all(S, weight, region) * 100).round(1).to_dict()}
+
+        # 6) everything else absorbs the rest of the national target. In the by-election scenario MK and
+        #    IFP (whose levels KZN by-elections contradict) keep their modelled levels here, so their
+        #    national totals come out of the model rather than the polls.
+        W = weight.values
+        fixed = is_metro | region
+        fixed_votes = (S.values[fixed] * W[fixed, None]).sum(0)
+        rest_w = W[~fixed].sum()
+        floating = {"MK", "IFP"} if scenario == "byelection" else set()
+        rest_tgt = {p: max((nat[p] * W.sum() - fixed_votes[COLS.index(p)]) / rest_w, 0.001) for p in nat
+                    if p not in floating}
+        if floating:
+            rest_cur = aggregate_all(S, weight, ~fixed)
+            keep = {p: float(rest_cur[p]) for p in floating}
+            scale = (1 - sum(keep.values())) / sum(rest_tgt.values())
+            rest_tgt = {p: v * scale for p, v in rest_tgt.items()} | keep
+        S = M.calibrate(S, weight, rest_tgt, COLS, mask=~fixed)
 
     # 7) simulate: poll error per party, municipal and ward surprises, differential turnout, seats
     sd_nat = np.array([min(poll["national_sd_pts"].get(p, POLLS.HIST_ERR) / max(poll["national"].get(p, 2.0), 2.0),
@@ -239,6 +249,7 @@ def run(n_sims=2000, as_of=None, scenario="byelection"):
         "national_interval_90": (mstats["national_interval"] * 100).round(1).to_dict(),
         "expected_correct_calls": round(float(out.win_prob.mean()), 3),
     }
+    summary["draws"] = {"ward_totals": mstats["ward_totals"], "largest": mstats["largest_draws"]}
     return out, muni, summary, resid
 
 
@@ -260,7 +271,11 @@ def main(n_sims=2000, as_of=None):
         "byelection": {"national_share": summary["national_share"], "kzn": kzn_summary(out, muni)},
         "poll": {"national_share": alt_summary["national_share"], "kzn": kzn_summary(alt, alt_muni)},
     }
+    draws = summary.pop("draws")
     OUTPUTS.mkdir(exist_ok=True)
+    draws["ward_totals"].to_csv(OUTPUTS / "sim_ward_totals_2026.csv", index=False)
+    draws["largest"][[c for c in draws["largest"].columns if c in METROS]].to_csv(
+        OUTPUTS / "sim_metro_largest_2026.csv", index=False)
     out.to_csv(OUTPUTS / "ward_forecast_2026.csv", index=False)
     muni.to_csv(OUTPUTS / "municipality_forecast_2026.csv", index=False)
     alt.to_csv(OUTPUTS / "ward_forecast_2026_poll_scenario.csv", index=False)
