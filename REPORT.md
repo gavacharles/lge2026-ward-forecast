@@ -1,6 +1,6 @@
 # How the LGE 2026 ward forecast was built
 
-*Report date: 29 October 2026 · Methodology, margins of error and limits: [METHODOLOGY.md](METHODOLOGY.md) · Election day: 4 November 2026 · Live map: <https://gavacharles.github.io/lge2026-ward-forecast/>*
+*Report date: 2 November 2026 · Methodology, margins of error and limits: [METHODOLOGY.md](METHODOLOGY.md) · Election day: 4 November 2026 · Live map: <https://gavacharles.github.io/lge2026-ward-forecast/>*
 
 This is an independent model, not affiliated with the Electoral Commission of South Africa (IEC), the
 Municipal Demarcation Board (MDB) or any party. Its forecasts are probabilities. In some wards the
@@ -13,30 +13,30 @@ The forecast gives a favourite and a win probability for each of South Africa's 
 municipality. It runs automatically, and on election night it switches to live updating from the IEC's
 published results.
 
-**Headline forecast (as of 29 October 2026):**
+**Headline forecast (as of 2 November 2026):**
 
 | Party | National ward-ballot share (90% range) | Wards favoured | Expected wards won* |
 | --- | --- | --- | --- |
-| ANC | 29.9% (24–34) | 2,501 | 2,306 |
-| DA | 24.7% (19–29) | 1,070 | 1,049 |
-| MK | 10.7% (8–13) | 386 | 433 |
-| IFP | 5.1% (3–8) | 402 | 353 |
-| EFF | 8.1% (5–14) | 35 | 136 |
-| PA | 2.2% (1–4) | 33 | 57 |
-| FF+ | 3.0% (2–6) | 22 | 52 |
-| ActionSA | 3.7% (2–8) | 20 | 53 |
-| Local parties and independents | 12.5% (10–16) | 16 | 44 |
+| ANC | 29.3% (24–33) | 2,458 | 2,255 |
+| DA | 25.3% (20–30) | 1,127 | 1,101 |
+| MK | 10.4% (8–13) | 371 | 418 |
+| IFP | 5.2% (3–8) | 410 | 357 |
+| EFF | 8.6% (6–14) | 39 | 154 |
+| PA | 2.0% (1–4) | 22 | 46 |
+| FF+ | 3.0% (1–6) | 23 | 50 |
+| ActionSA | 3.7% (2–8) | 19 | 57 |
+| Local parties and independents | 12.5% (10–16) | 16 | 45 |
 
 \*Expected wards won is the sum of each ward's win probability. It differs from the favourite count
 because a party that trails narrowly in many wards still wins some of them.
 
-- **Competitiveness:** 659 wards are toss-ups (no party above a 60% chance), and 1,006 wards have a
+- **Competitiveness:** 657 wards are toss-ups (no party above a 60% chance), and 1,041 wards have a
   different favourite from their estimated 2021 winner.
-- **Biggest swings:** ANC to MK (354 wards, mostly KwaZulu-Natal), ANC to DA (303) and ANC to IFP (78).
+- **Biggest swings:** ANC to DA (359 wards), ANC to MK (342, mostly KwaZulu-Natal) and ANC to IFP (83).
 - **KwaZulu-Natal** follows its by-elections rather than national polls (section 5). With polls alone,
-  MK would be favoured in 658 KZN wards instead of 303; both versions are published.
-- **Councils:** 151 of 213 councils are more likely than not to be hung. Cape Town is the only metro
-  likely to have a single-party majority (DA, 72%).
+  MK would be favoured in 627 KZN wards instead of 294; both versions are published.
+- **Councils:** 150 of 213 councils are more likely than not to be hung. Cape Town is the only metro
+  likely to have a single-party majority (DA, 69%).
 
 **Does the method work?** It was re-run on the eve of the 2016 and 2021 elections, using only data
 available then:
@@ -175,9 +175,9 @@ So in KZN outside eThekwini (no polls there), the by-elections now also set the 
 - The resulting level gets n ÷ (n + 10) = 78% weight against the model's own. "Other" keeps its level,
   because the national-ballot baseline has no independents.
 - Outside this region, MK and the IFP keep their modelled levels instead of being scaled to their
-  national poll totals. So MK's national share (10.7%) comes out below the polls (13.7%).
+  national poll totals. So MK's national share (10.4%) comes out below the polls (13.1%).
 
-Result in the region: MK 42.8% → 27.4%, IFP 20.6% → 30.1%, ANC 12.3% → 19.0%. In the 2016 and 2021
+Result in the region: MK 41.1% → 27.1%, IFP 21.4% → 30.2%, ANC 12.4% → 19.0%. In the 2016 and 2021
 backtests, where national polls were assumed perfect, this step lowered KZN-region accuracy slightly
 (84.2% → 83.8% and 80.0% → 78.5%). It is used for 2026 as a judgement, because polls and by-elections now
 disagree far more than in those cycles and MK has no local record. A poll-led version is saved in
@@ -197,14 +197,16 @@ poll's miss is mostly late movement: Ipsos's final 2024 poll ended six weeks ear
 | Ipsos | none (final poll ended 15 April 2024) | — |
 | SABI / News24 | none (no 2024 poll) | — |
 
-Current average, with spread: ANC 31.3% ±2.1, DA 25.9% ±2.1, MK 13.7% ±2.2, EFF 8.5% ±2.9, IFP 3.7%,
-FF+ 3.2%, ActionSA 3.9%, PA 2.3%. The ± combines disagreement between polls with a 2-point allowance
+Current average, with spread: ANC 30.8% ±2.2, DA 26.7% ±2.3, MK 13.1% ±2.3, EFF 9.1% ±2.7, IFP 3.9%,
+FF+ 3.2%, ActionSA 4.0%, PA 2.1%. The ± combines disagreement between polls with a 2-point allowance
 for the typical error of a final poll average. In the forecast these are shares of all votes, so they are
 scaled down by the 12.4% held for "Other".
 
-A metro's pull towards its own polls grows with its effective sample size: n ÷ (n + 800). That gives 0.61
-for Johannesburg, Tshwane and eThekwini, 0.51 for Cape Town, about 0.36 for Ekurhuleni and Nelson
-Mandela Bay, and 0.2 for Buffalo City and Mangaung, which have only small Ipsos subsamples.
+A metro's pull towards its own polls grows with its effective sample size: n ÷ (n + 800). That gives about 0.6
+for Johannesburg, Tshwane and eThekwini, 0.52 for Cape Town, about 0.33 for Ekurhuleni and Nelson
+Mandela Bay, and 0.2 for Buffalo City and Mangaung, which have only small Ipsos subsamples. Ipsos's
+30 October release publishes no figures for those last four metros, but says the ANC is narrowly ahead
+in Ekurhuleni and that Nelson Mandela Bay is extremely close, which is tighter than these forecasts.
 
 **Uncertainty.** Each of 2,000 simulations draws:
 - **National poll error:** per party, sized from the poll spread.
@@ -227,7 +229,7 @@ candidate in a ward are removed there and the shares re-normalised. The DA and E
 the ANC in 4,471, MK in 3,770 and the IFP in 1,921.
 
 **National ranges.** The simulations also give 90% ranges for each party's national share (section 1).
-The favourites' average win chance is 83.5%. That is what the forecast itself expects its ward
+The favourites' average win chance is 83.2%. That is what the forecast itself expects its ward
 accuracy to be, below the backtest figures because those assumed perfect polls.
 
 ## 7. Council seats and coalitions
@@ -244,26 +246,26 @@ and EFF 29 seats, against 91, 71, 44 and 29 in the council.
 
 | Metro | Largest party (chance) | Hung council | Expected seats: ANC / DA / MK / EFF / ActionSA | Seats |
 | --- | --- | --- | --- | --- |
-| Johannesburg | DA (91%) | 100% | 54 / 82 / 30 / 23 / 31 | 270 |
-| Cape Town | DA (100%) | 28% | 37 / 126 / 3 / 14 / 4 | 236 |
-| eThekwini | MK (95%) | 98% | 23 / 60 / 91 / 5 / 4 | 224 |
-| Tshwane | DA (74%) | 100% | 55 / 65 / 10 / 20 / 22 | 214 |
-| Ekurhuleni | DA (66%) | 100% | 55 / 63 / 28 / 19 / 17 | 224 |
-| Nelson Mandela Bay | DA (84%) | 100% | 35 / 44 / 2 / 10 / 3 | 120 |
-| Buffalo City | ANC (96%) | 97% | 39 / 22 / 2 / 16 / 3 | 100 |
-| Mangaung | ANC (84%) | 100% | 36 / 28 / 2 / 12 / 3 | 102 |
+| Johannesburg | DA (88%) | 100% | 55 / 80 / 26 / 24 / 34 | 270 |
+| Cape Town | DA (100%) | 31% | 37 / 125 / 3 / 16 / 5 | 236 |
+| eThekwini | MK (95%) | 98% | 23 / 60 / 90 / 6 / 5 | 224 |
+| Tshwane | DA (74%) | 100% | 55 / 64 / 8 / 20 / 24 | 214 |
+| Ekurhuleni | DA (68%) | 100% | 54 / 64 / 24 / 20 / 20 | 224 |
+| Nelson Mandela Bay | DA (88%) | 100% | 34 / 44 / 2 / 11 / 3 | 120 |
+| Buffalo City | ANC (94%) | 98% | 38 / 22 / 2 / 16 / 3 | 100 |
+| Mangaung | ANC (82%) | 100% | 35 / 28 / 2 / 13 / 3 | 102 |
 
 **Coalition arithmetic:** the chance that each group holds a majority of seats. These are sums of
 seats, not predictions of deals.
 
 | Metro | ANC + EFF | ANC + MK + EFF | ANC + DA | DA + FF+ + ActionSA + IFP | ANC + DA + IFP |
 | --- | --- | --- | --- | --- | --- |
-| Johannesburg | 0% | 1% | 50% | 18% | 62% |
-| eThekwini | 0% | 70% | 0% | 0% | 8% |
-| Tshwane | 0% | 0% | 88% | 31% | 88% |
-| Ekurhuleni | 0% | 14% | 66% | 5% | 75% |
-| Buffalo City | 71% | 80% | 97% | 0% | 97% |
-| Mangaung | 25% | 42% | 98% | 0% | 98% |
+| Johannesburg | 0% | 1% | 52% | 26% | 63% |
+| eThekwini | 0% | 67% | 0% | 0% | 7% |
+| Tshwane | 0% | 0% | 88% | 36% | 89% |
+| Ekurhuleni | 0% | 10% | 67% | 9% | 73% |
+| Buffalo City | 71% | 78% | 96% | 0% | 96% |
+| Mangaung | 26% | 38% | 98% | 0% | 98% |
 
 ## 8. Election night: the live nowcast
 

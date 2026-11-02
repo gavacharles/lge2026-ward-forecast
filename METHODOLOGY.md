@@ -1,6 +1,6 @@
 # Methodology statement: LGE 2026 ward forecast
 
-*South Africa local government elections, 4 November 2026 · Statement dated 29 October 2026 ·
+*South Africa local government elections, 4 November 2026 · Statement dated 2 November 2026 ·
 Live map: <https://gavacharles.github.io/lge2026-ward-forecast/>*
 
 ## 1. What this is, and what it is not
@@ -19,7 +19,7 @@ the method on the 2016 and 2021 elections.
 | Author | Independent; not commissioned or paid for by any party, media house, the IEC or the Municipal Demarcation Board |
 | Coverage | All 4,485 wards (Municipal Demarcation Board 2026 boundaries), 213 ward-based councils, 8 metros |
 | What is forecast | Ward-ballot vote shares, ward winners, council seats, coalition arithmetic |
-| Data cut-off | Polls with fieldwork to 15 Oct 2026; by-elections to 24 Jun 2026; candidate lists as supplemented on 23 Oct 2026 |
+| Data cut-off | Polls with fieldwork to mid-October 2026 (Ipsos, published 30 October); by-elections to 24 Jun 2026; candidate lists as supplemented on 23 Oct 2026 |
 | Update schedule | Re-run daily and whenever inputs change; on election night every 15 minutes from counted results |
 | Code and data | Public: <https://github.com/gavacharles/lge2026-ward-forecast> |
 
@@ -31,10 +31,11 @@ the method on the 2016 and 2021 elections.
   2026 ward boundaries.
 - **By-elections:** IEC ward by-election results; 218 held between the 2024 election and 24 June 2026
   are used.
-- **Polls:** 29 published polls (national and metro) from Ipsos, SRF/The Common Sense, SABI Strategy
+- **Polls:** 38 published poll readings (national and metro) from Ipsos, SRF/The Common Sense, SABI Strategy
   Group/News24 and eNCA/MarkData. They are taken from Wikipedia's polling table and the original
   reports. Fieldwork end dates are set to mid-month where only the month is published. Where a sample
-  size isn't published, 500 is assumed for metro polls.
+  size isn't published, 500 is assumed for metro polls. The latest Ipsos wave was checked against Ipsos's
+  own charts, with metro samples worked out from its published margins of error.
 - **Candidates:** the IEC certified candidate lists (99,891 ward candidacies, including 569
   independents), as supplemented on 23 October 2026 after the Constitutional Court order in
   *ANC v Electoral Commission*.
@@ -87,22 +88,22 @@ likely under 90%, safe from 90%). All settings are listed in the code with their
 
 | Party | Forecast | 90% range | Poll average (± spread) |
 |---|---|---|---|
-| ANC | 29.9% | 24–34% | 31.3 ± 2.1 |
-| DA | 24.7% | 19–29% | 25.9 ± 2.1 |
-| MK | 10.7% | 8–13% | 13.7 ± 2.2 |
-| EFF | 8.1% | 5–14% | 8.5 ± 2.9 |
-| IFP | 5.1% | 3–8% | 3.7 ± 2.2 |
-| ActionSA | 3.7% | 2–8% | 3.9 ± 2.5 |
+| ANC | 29.3% | 24–33% | 30.8 ± 2.2 |
+| DA | 25.3% | 20–30% | 26.7 ± 2.3 |
+| MK | 10.4% | 8–13% | 13.1 ± 2.3 |
+| EFF | 8.6% | 6–14% | 9.1 ± 2.7 |
+| IFP | 5.2% | 3–8% | 3.9 ± 2.1 |
+| ActionSA | 3.7% | 2–8% | 4.0 ± 2.2 |
 | FF+ | 3.0% | 2–6% | 3.1 ± 2.0 |
-| PA | 2.2% | 1–4% | 2.3 ± 2.0 |
+| PA | 2.0% | 1–4% | 2.1 ± 2.0 |
 | Independents and others | 12.5% | 10–16% | not polled |
 
 Poll averages are shares of all votes before "Other" is set aside, so they are slightly higher than the
 forecast.
 
 **Ward winners.**
-- The forecast's own probabilities imply about **84% of ward winners called correctly** (the average of
-  the favourites' chances). That is about 740 wrong calls out of 4,485.
+- The forecast's own probabilities imply about **83% of ward winners called correctly** (the average of
+  the favourites' chances). That is about 750 wrong calls out of 4,485.
 - In tests on past elections, with the actual national result standing in for polls, the method called
   **94.2% (2016) and 90.8% (2021)** of ward winners. Simply carrying forward the last result scored 92.8%
   and 89.3%. Those test figures are a best case, because real polls are never exact.
@@ -120,7 +121,7 @@ forecast.
 Mid-range chances have been too cautious, and "safe" calls slightly too confident: about 1 in 35 safe
 wards was lost in 2021.
 
-**Ratings now:** 2,263 safe, 955 likely, 608 lean and 659 toss-up wards.
+**Ratings now:** 2,222 safe, 959 likely, 647 lean and 657 toss-up wards.
 
 ## 6. Design constraints and limitations
 
@@ -132,16 +133,16 @@ wards was lost in 2021.
 
   | KwaZulu-Natal | By-election-led (published) | Poll-led |
   |---|---|---|
-  | Wards favouring IFP / MK | 402 / 303 | 121 / 658 |
-  | Councils where IFP / MK likely largest | 21 / 14 | 5 / 36 |
-  | MK national vote | 10.7% | 12.9% |
+  | Wards favouring IFP / MK | 409 / 294 | 143 / 627 |
+  | Councils where IFP / MK likely largest | 21 / 13 | 5 / 36 |
+  | MK national vote | 10.4% | 12.3% |
 
   This is a judgement, not a tested result. In the 2016 and 2021 tests, where the polls were assumed
   perfect, using by-elections this way slightly lowered KZN accuracy (by 1.5 and 0.4 points). It is used
   here because polls and by-elections disagree far more than before, and MK has no local-election record.
   By-elections have low turnout, so they may understate parties whose voters turn out less, which could
   include MK.
-- **Few polls.** Only 6 national polls since January; none newer than mid-October. Buffalo City and
+- **Few polls.** Only 7 national polls since January; none newer than mid-October. Buffalo City and
   Mangaung have only small subsamples. Rural areas are polled only as part of national samples.
 - **Local effects.** Even with perfect national figures, 5–9% of wards went against the model in past
   tests. Those misses come from local candidates, defections and service-delivery anger, which the model
@@ -171,4 +172,4 @@ scorer, run on the 2021 backtest, reproduces its published figures (`outputs/sco
 
 The model, data and every setting are public. Errors can be reported as issues on the GitHub repository.
 Changes to the method are recorded in the repository's history. This statement describes the forecast
-published on 29 October 2026; numbers on the live site update as inputs change.
+published on 2 November 2026; numbers on the live site update as inputs change.
