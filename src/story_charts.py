@@ -4,6 +4,8 @@
   s2  the range of ward totals across all 2,000 simulations
   s3  what if the polls are wrong by 3 points
   s4  how each ingredient changes the answer
+  s5  ANC and DA in each metro, 2021 to 2026
+  s6  map of the wards going from ANC to DA
 Party colours match the site. Values are labelled directly, so nothing depends on colour alone.
 """
 import json
@@ -188,12 +190,92 @@ def s4_ingredients():
     plt.close(fig)
 
 
+def s5_metro_slopes():
+    """ANC and DA vote share per metro, 2021 result to 2026 forecast, with the 2026 poll average marked."""
+    import polls as POLLS
+    from paths import INTERIM
+    v = pd.read_parquet(INTERIM / "vd_votes.parquet")
+    meta = pd.read_parquet(INTERIM / "vd_meta.parquet")
+    e = "lge2021_ward"
+    x = v[v.election == e].merge(meta[meta.election == e][["vd", "muni"]], on="vd")
+    t21 = x.pivot_table(index="muni", columns="party", values="votes", aggfunc="sum")
+    t21 = t21.div(t21.sum(axis=1), axis=0) * 100
+    w = pd.read_csv(OUTPUTS / "ward_forecast_2026.csv")
+    polls = POLLS.aggregate(json.load(open(OUTPUTS / "forecast_summary_2026.json"))["as_of"])["metros"]
+    fig = frame("The ANC falls in all eight metros. The DA rises in six",
+                "Vote share (%), 2021 ward-ballot result to 2026 forecast. Open circles: 2026 poll average, before about 12% is set\n"
+                "aside for independents and local parties. Polls have Ekurhuleni and Nelson Mandela Bay closer than the forecast.", (10, 7.4))
+    for i, (c, label) in enumerate(METROS.items()):
+        ax = fig.add_axes([0.08 + (i % 4) * 0.2375, 0.44 - (i // 4) * 0.37, 0.155, 0.255])
+        d = w[w.muni == c]
+        now = {p: float((d[f"share_{p}"] * d.expected_votes).sum() / d.expected_votes.sum()) for p in ["ANC", "DA"]}
+        for p in ["ANC", "DA"]:
+            then = float(t21.at[c, p])
+            ax.plot([0, 1], [then, now[p]], color=COL[p], linewidth=2.5, solid_capstyle="round")
+            ax.scatter([0, 1], [then, now[p]], s=52, color=COL[p], zorder=3, edgecolor=BG, linewidth=1.2)
+            q = polls[c]["shares"].get(p)
+            if q is not None:
+                ax.scatter([1.3], [q], s=48, facecolor=BG, edgecolor=COL[p], linewidth=1.8, zorder=3)
+        a0, d0 = float(t21.at[c, "ANC"]), float(t21.at[c, "DA"])
+        lift = 2.4 if abs(a0 - d0) < 5 else 0
+        ax.text(-0.09, a0 + (lift if a0 >= d0 else -lift), f"ANC {a0:.0f}", ha="right", va="center", fontsize=10)
+        ax.text(-0.09, d0 + (lift if d0 > a0 else -lift), f"DA {d0:.0f}", ha="right", va="center", fontsize=10)
+        lift = 2.4 if abs(now["ANC"] - now["DA"]) < 5 else 0
+        ax.text(1.07, now["ANC"] + (lift if now["ANC"] >= now["DA"] else -lift), f"{now['ANC']:.0f}", ha="left", va="center", fontsize=10, fontweight="bold")
+        ax.text(1.07, now["DA"] + (lift if now["DA"] > now["ANC"] else -lift), f"{now['DA']:.0f}", ha="left", va="center", fontsize=10, fontweight="bold")
+        ax.set_xlim(-0.05, 1.42)
+        ax.set_ylim(0, 65)
+        ax.set_xticks([0, 1], ["2021", "2026"], fontsize=10)
+        ax.set_yticks([])
+        quiet(ax)
+        ax.spines["bottom"].set_visible(True)
+        fig.text(0.035 + (i % 4) * 0.2375, 0.705 - (i // 4) * 0.37, label, fontsize=12.5, fontweight="bold")
+    handles = [plt.Line2D([], [], color=COL["ANC"], marker="o", linewidth=2.5), plt.Line2D([], [], color=COL["DA"], marker="o", linewidth=2.5),
+               plt.Line2D([], [], color=MUTED, marker="o", markerfacecolor=BG, linewidth=0)]
+    fig.legend(handles, ["ANC", "DA", "2026 poll average"], ncol=3, loc="upper left", bbox_to_anchor=(0.03, 0.8), frameon=False, fontsize=10.5)
+    fig.savefig(OUT / "s5_metro_slopes.png")
+    plt.close(fig)
+
+
+def s6_anc_to_da_map():
+    """Wards forecast to go from ANC to DA since 2021."""
+    import geopandas as gpd
+    from paths import RAW
+    w = pd.read_csv(OUTPUTS / "ward_forecast_2026.csv", dtype={"ward": str}).set_index("ward")
+    g = gpd.read_file(RAW / "mdb_wards_2026.geojson").set_index("WardID").to_crs("ESRI:102022")
+    g["geometry"] = g.geometry.simplify(500)
+    f = w[(w.winner_2021_est == "ANC") & (w.favourite == "DA")]
+    back = int(((w.winner_2021_est == "DA") & (w.favourite == "ANC")).sum())
+    votes = f.expected_votes.sum() / w.expected_votes.sum()
+    toss = f.rating == "Toss-up"
+    fig = frame(f"ANC to DA: {len(f)} wards. DA to ANC: {back}",
+                f"Wards forecast to change from ANC to DA since 2021. They fill much of the map but hold only about {votes:.0%} of expected\n"
+                "votes, because big rural wards hold few voters. 2021 winners are estimates on the 2026 boundaries.")
+    ax = fig.add_axes([0.02, 0.05, 0.66, 0.73])
+    g.plot(ax=ax, color="#e9ecea", edgecolor="#ffffff", linewidth=0.1)
+    g.loc[f.index[~toss]].plot(ax=ax, color=COL["DA"], edgecolor="#ffffff", linewidth=0.1)
+    g.loc[f.index[toss]].plot(ax=ax, color="#a9c6f2", edgecolor="#ffffff", linewidth=0.1)
+    ax.axis("off")
+    x = 0.7
+    handles = [plt.Rectangle((0, 0), 1, 1, color=COL["DA"]), plt.Rectangle((0, 0), 1, 1, color="#a9c6f2"), plt.Rectangle((0, 0), 1, 1, color="#e9ecea")]
+    fig.legend(handles, [f"DA favoured, chance 60%+ ({(~toss).sum()})", f"Toss-up, chance under 60% ({toss.sum()})", "All other wards"],
+               loc="upper left", bbox_to_anchor=(x - 0.01, 0.76), frameon=False, fontsize=10.5, handlelength=1)
+    fig.text(x, 0.53, "Where they are", fontsize=12.5, fontweight="bold")
+    for i, (prov, n) in enumerate(f.province.value_counts().items()):
+        fig.text(x, 0.49 - i * 0.04, prov, fontsize=11)
+        fig.text(x + 0.25, 0.49 - i * 0.04, f"{n}", fontsize=11, ha="right", fontweight="bold")
+    fig.savefig(OUT / "s6_anc_to_da_map.png")
+    plt.close(fig)
+
+
 def main():
     OUT.mkdir(parents=True, exist_ok=True)
     s1_hundred()
     s2_range()
     s3_whatif()
     s4_ingredients()
+    s5_metro_slopes()
+    s6_anc_to_da_map()
     print("story charts ->", OUT)
 
 
