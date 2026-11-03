@@ -1,0 +1,15 @@
+{
+ "frozen_at_utc": "2026-11-03T19:09:27+00:00",
+ "git_commit": "d5647eea357b383cbbe90139087683e1089ec35c",
+ "polls_as_of": "2026-11-03",
+ "files": {
+  "ward_forecast_2026.csv": "9d56f9f9e0a23ed5654e81fea41efa4e1b4169191b5473ab76260e61a493159c",
+  "ward_forecast_2026_poll_scenario.csv": "abac22c8a529cb664c68d316b6e32269dfd2a9c15000d712d73123db5eda20ea",
+  "municipality_forecast_2026.csv": "86d8767a7950f5164d66a0910396d32a6fee0511370833d5bf6faf1477e6c65c",
+  "forecast_summary_2026.json": "24eb9e72e80e0720e6e95f0bcf19a9be1e5d4bbed869136c76c76a4ef36848d3",
+  "backtest.json": "0ae845e00cb8c6459aae0bbd31e75f6dddb6d83d851b09e01bde8189f45a2ef4",
+  "sim_ward_totals_2026.csv": "602c4078ca9ad692abc7f89c64f3b52ff1d88241f160ce1b1132beb731a7c33c",
+  "sim_metro_largest_2026.csv": "c3360f6e2e657b101bc5bd8aa9526e0336767dde38808d612939295cc1bab150",
+  "site_forecast.json": "16b7d55f82903615c83275eb5cc68fec258a461bb161beb8b714c1985ac26d9d"
+ }
+}
