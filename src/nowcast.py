@@ -146,16 +146,32 @@ def replay(fracs=(0.1, 0.25, 0.5, 0.75), seed=3):
     return res
 
 
+def download(pr, tries=4):
+    """One province's IEC results file. The IEC server sometimes drops large downloads part-way
+    (IncompleteRead), so retry with a pause rather than fail the run. None if not published (non-200)."""
+    import time
+    for attempt in range(1, tries + 1):
+        try:
+            r = requests.get(LIVE_URL.format(pr=pr), headers={"User-Agent": "Mozilla/5.0"}, timeout=300)
+            return r.content if r.status_code == 200 else None
+        except (requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout) as e:
+            if attempt == tries:
+                raise
+            print(f"{pr}: download failed ({type(e).__name__}), retry {attempt}/{tries - 1}", flush=True)
+            time.sleep(20 * attempt)
+
+
 def fetch_live():
     from build_data import group
     frames = []
     for pr in PROVS:
-        r = requests.get(LIVE_URL.format(pr=pr), headers={"User-Agent": "Mozilla/5.0"}, timeout=300)
-        if r.status_code != 200:
+        content = download(pr)
+        if content is None:
             continue
         f = RAW / "live2026" / f"{pr}.csv"
         f.parent.mkdir(parents=True, exist_ok=True)
-        f.write_bytes(r.content)
+        f.write_bytes(content)
         frames.append(pd.read_csv(f, encoding="utf-8-sig", low_memory=False))
     if not frames:
         return None

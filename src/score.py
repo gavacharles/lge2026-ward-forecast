@@ -34,16 +34,16 @@ FROZEN = PROJECT / "frozen"
 def results_2026():
     """IEC final results (same files as the live feed, complete once results are declared)."""
     import build_data
-    from nowcast import LIVE_URL, PROVS
-    import requests
+    from nowcast import PROVS, download
     folder = RAW / "lge2026"
     folder.mkdir(parents=True, exist_ok=True)
     for pr in PROVS:
         f = folder / f"{pr}.csv"
         if not f.exists():
-            r = requests.get(LIVE_URL.format(pr=pr), headers={"User-Agent": "Mozilla/5.0"}, timeout=300)
-            r.raise_for_status()
-            f.write_bytes(r.content)
+            content = download(pr)
+            if content is None:
+                sys.exit(f"IEC results for {pr} are not available.")
+            f.write_bytes(content)
     d = build_data.load_lge("lge2026", "lge2026")
     d["votes"] = pd.to_numeric(d.votes, errors="coerce").fillna(0)
     return pd.DataFrame({"ballot": d.election.str.split("_").str[1], "vd": d.vd, "ward": d.ward, "muni": d.muni,
@@ -180,10 +180,11 @@ def p_of_actual(w, actual):
 def score(w, m, s, alt, A, label):
     blocs = json.load(open(PROJECT / "config" / "coalitions.json"))
     idx = w.index.intersection(A["winner"].index)
+    n_forecast = len(w)
     w, act = w.loc[idx], A["winner"].loc[idx]
     hit = w.favourite == act
     p_act = p_of_actual(w, act)
-    res = {"label": label, "wards_scored": int(len(idx)), "wards_in_forecast": int(len(w)),
+    res = {"label": label, "wards_scored": int(len(idx)), "wards_in_forecast": int(n_forecast),
            "ward_accuracy": float(hit.mean()),
            "baseline_prev_local": float((w.base_prev_local == act).mean()),
            "baseline_national_leader": float((w.base_national == act).mean()),
@@ -247,7 +248,8 @@ def score(w, m, s, alt, A, label):
 def report(r):
     pct = lambda v: f"{v:.1%}"
     L = [f"# Scorecard: {r['label']}", "",
-         f"Wards scored: {r['wards_scored']:,} of {r['wards_in_forecast']:,}.", "",
+         f"Wards scored: {r['wards_scored']:,} of {r['wards_in_forecast']:,} forecast"
+         + (f" ({r['wards_in_forecast'] - r['wards_scored']} forecast ward IDs do not appear in the results)." if r['wards_in_forecast'] > r['wards_scored'] else "."), "",
          "## Ward winners", "", "| Method | Called correctly |", "|---|---|",
          f"| **This forecast** | **{pct(r['ward_accuracy'])}** |",
          f"| Carry forward the previous local winner | {pct(r['baseline_prev_local'])} |",

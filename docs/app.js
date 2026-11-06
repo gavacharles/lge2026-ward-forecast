@@ -198,6 +198,16 @@
       rows.push([`${p} national: forecast / actual`, `${n.forecast} / ${n.actual}${n.in_90 === false ? ' (outside range)' : ''}`]);
     }
     for (const [k, v] of rows) tb.append(el('tr', {}, el('td', {}, k), el('td', { className: 'n' }, v)));
+    // one-line verdict, so the comparison with the simple rules is stated rather than left to the reader
+    const best = Math.max(sc.baseline_prev_local, sc.baseline_national_leader);
+    const beaten = [sc.baseline_prev_local, sc.baseline_national_leader].filter((b) => sc.ward_accuracy > b).length;
+    const nIn = Object.values(sc.national).filter((n) => n.in_90).length, nAll = Object.keys(sc.national).length;
+    const verdict = (beaten === 2 ? 'The forecast called more wards correctly than either simple rule. '
+      : beaten === 1 ? `The forecast beat carrying forward the 2021 winners, but simply picking each ward's 2024 national-ballot leader did better (${pc(best)} vs ${pc(sc.ward_accuracy)}). `
+      : `Both simple rules called more wards correctly than the forecast. `)
+      + `National vote shares were closer: ${nIn} of ${nAll} landed inside the forecast's 90% range.`
+      + (sc.wards_in_forecast > sc.wards_scored ? ` ${sc.wards_in_forecast - sc.wards_scored} forecast wards could not be matched to the results and are not scored.` : '');
+    document.querySelector('#scorecard .note').after(el('p', {}, verdict));
     document.getElementById('scorecard').hidden = false;
   }
 

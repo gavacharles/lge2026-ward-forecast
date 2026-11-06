@@ -27,7 +27,12 @@ PARTIES = ["ANC", "DA", "MK", "EFF", "IFP", "PA", "FFP", "ASA", "OTH"]
 
 
 def group(name):
-    return PARTY_GROUPS.get(" ".join(str(name).upper().split()), "OTH")
+    # 2026 IEC files give some parties in two languages, e.g. "VRYHEIDSFRONT PLUS | FREEDOM FRONT PLUS"
+    for part in str(name).split("|"):
+        code = PARTY_GROUPS.get(" ".join(part.upper().split()))
+        if code:
+            return code
+    return "OTH"
 
 
 def muni_code(s):
