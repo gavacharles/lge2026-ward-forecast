@@ -1,0 +1,836 @@
+{
+ "label": "2026",
+ "wards_scored": 4407,
+ "wards_in_forecast": 4485,
+ "ward_accuracy": 0.8141592920353983,
+ "baseline_prev_local": 0.7701384161561152,
+ "baseline_national_leader": 0.8500113455865669,
+ "expected_accuracy": 0.833124801452235,
+ "brier": 0.15851567233945996,
+ "log_loss": 0.5965541890256795,
+ "calibration": {
+  "(0.0, 0.5]": {
+   "wards": 231.0,
+   "forecast": 0.44,
+   "won": 0.424
+  },
+  "(0.5, 0.6]": {
+   "wards": 404.0,
+   "forecast": 0.549,
+   "won": 0.562
+  },
+  "(0.6, 0.7]": {
+   "wards": 398.0,
+   "forecast": 0.651,
+   "won": 0.603
+  },
+  "(0.7, 0.8]": {
+   "wards": 479.0,
+   "forecast": 0.753,
+   "won": 0.737
+  },
+  "(0.8, 0.9]": {
+   "wards": 704.0,
+   "forecast": 0.855,
+   "won": 0.812
+  },
+  "(0.9, 0.95]": {
+   "wards": 529.0,
+   "forecast": 0.928,
+   "won": 0.904
+  },
+  "(0.95, 1.0]": {
+   "wards": 1662.0,
+   "forecast": 0.984,
+   "won": 0.975
+  }
+ },
+ "by_rating": {
+  "Safe": 0.957553628480146,
+  "Likely": 0.8004201680672269,
+  "Lean": 0.6406995230524642,
+  "Toss-up": 0.5118110236220472
+ },
+ "national": {
+  "ANC": {
+   "forecast": 29.3,
+   "actual": 31.4,
+   "error": -2.1,
+   "in_90": "True"
+  },
+  "DA": {
+   "forecast": 25.3,
+   "actual": 24.2,
+   "error": 1.1,
+   "in_90": "True"
+  },
+  "MK": {
+   "forecast": 10.4,
+   "actual": 9.5,
+   "error": 0.9,
+   "in_90": "True"
+  },
+  "EFF": {
+   "forecast": 8.6,
+   "actual": 6.2,
+   "error": 2.4,
+   "in_90": "True"
+  },
+  "IFP": {
+   "forecast": 5.2,
+   "actual": 5.0,
+   "error": 0.2,
+   "in_90": "True"
+  },
+  "PA": {
+   "forecast": 2.0,
+   "actual": 2.0,
+   "error": -0.0,
+   "in_90": "True"
+  },
+  "FFP": {
+   "forecast": 3.0,
+   "actual": 3.0,
+   "error": -0.0,
+   "in_90": "True"
+  },
+  "ASA": {
+   "forecast": 3.8,
+   "actual": 4.8,
+   "error": -1.1,
+   "in_90": "True"
+  },
+  "OTH": {
+   "forecast": 12.5,
+   "actual": 14.0,
+   "error": -1.5,
+   "in_90": "True"
+  }
+ },
+ "ward_share_mae_pts": {
+  "ANC": 8.3,
+  "DA": 5.2,
+  "MK": 3.5,
+  "EFF": 4.3,
+  "IFP": 1.5,
+  "PA": 1.2,
+  "FFP": 1.2,
+  "ASA": 2.2,
+  "OTH": 8.7
+ },
+ "provinces": {
+  "Eastern Cape": {
+   "biggest_miss": [
+    "EFF",
+    4.2
+   ],
+   "ANC": [
+    49.0,
+    45.4
+   ],
+   "DA": [
+    18.2,
+    17.9
+   ],
+   "MK": [
+    2.0,
+    1.7
+   ],
+   "IFP": [
+    0.0,
+    0.2
+   ],
+   "EFF": [
+    9.9,
+    5.7
+   ]
+  },
+  "Free State": {
+   "biggest_miss": [
+    "EFF",
+    4.4
+   ],
+   "ANC": [
+    32.8,
+    37.0
+   ],
+   "DA": [
+    29.7,
+    27.2
+   ],
+   "MK": [
+    2.0,
+    1.4
+   ],
+   "IFP": [
+    0.1,
+    0.2
+   ],
+   "EFF": [
+    12.4,
+    8.1
+   ]
+  },
+  "Gauteng": {
+   "biggest_miss": [
+    "ASA",
+    -6.1
+   ],
+   "ANC": [
+    21.3,
+    21.1
+   ],
+   "DA": [
+    32.2,
+    35.0
+   ],
+   "MK": [
+    8.3,
+    4.7
+   ],
+   "IFP": [
+    0.9,
+    1.3
+   ],
+   "EFF": [
+    9.2,
+    6.6
+   ]
+  },
+  "KwaZulu-Natal": {
+   "biggest_miss": [
+    "ANC",
+    -4.3
+   ],
+   "ANC": [
+    16.7,
+    21.1
+   ],
+   "DA": [
+    12.4,
+    12.3
+   ],
+   "MK": [
+    31.3,
+    33.8
+   ],
+   "IFP": [
+    24.1,
+    22.1
+   ],
+   "EFF": [
+    2.5,
+    1.9
+   ]
+  },
+  "Limpopo": {
+   "biggest_miss": [
+    "EFF",
+    3.3
+   ],
+   "ANC": [
+    58.0,
+    54.8
+   ],
+   "DA": [
+    8.4,
+    8.0
+   ],
+   "MK": [
+    1.1,
+    0.8
+   ],
+   "IFP": [
+    0.0,
+    0.0
+   ],
+   "EFF": [
+    13.9,
+    10.6
+   ]
+  },
+  "Mpumalanga": {
+   "biggest_miss": [
+    "ANC",
+    -7.7
+   ],
+   "ANC": [
+    36.4,
+    44.2
+   ],
+   "DA": [
+    16.8,
+    14.1
+   ],
+   "MK": [
+    15.8,
+    9.6
+   ],
+   "IFP": [
+    0.2,
+    0.5
+   ],
+   "EFF": [
+    12.3,
+    10.4
+   ]
+  },
+  "North West": {
+   "biggest_miss": [
+    "ANC",
+    -4.2
+   ],
+   "ANC": [
+    40.3,
+    44.5
+   ],
+   "DA": [
+    16.6,
+    14.2
+   ],
+   "MK": [
+    2.0,
+    2.5
+   ],
+   "IFP": [
+    0.0,
+    0.1
+   ],
+   "EFF": [
+    15.4,
+    12.3
+   ]
+  },
+  "Northern Cape": {
+   "biggest_miss": [
+    "ANC",
+    -10.1
+   ],
+   "ANC": [
+    31.6,
+    41.7
+   ],
+   "DA": [
+    30.9,
+    21.6
+   ],
+   "MK": [
+    0.6,
+    0.8
+   ],
+   "IFP": [
+    0.0,
+    0.0
+   ],
+   "EFF": [
+    12.2,
+    9.1
+   ]
+  },
+  "Western Cape": {
+   "biggest_miss": [
+    "DA",
+    2.6
+   ],
+   "ANC": [
+    13.4,
+    13.7
+   ],
+   "DA": [
+    57.6,
+    54.9
+   ],
+   "MK": [
+    0.9,
+    0.5
+   ],
+   "IFP": [
+    0.1,
+    0.0
+   ],
+   "EFF": [
+    4.9,
+    2.8
+   ]
+  }
+ },
+ "councils": {
+  "scored": 213,
+  "largest_party_correct": 0.7793427230046949,
+  "hung_status_correct": 0.8450704225352113
+ },
+ "metros": {
+  "BUF": {
+   "largest": [
+    "ANC",
+    "ANC"
+   ],
+   "hung": [
+    0.97,
+    true
+   ],
+   "seats": {
+    "ANC": [
+     37.5,
+     42
+    ],
+    "DA": [
+     22.5,
+     17
+    ],
+    "MK": [
+     1.8,
+     1
+    ],
+    "EFF": [
+     16.4,
+     7
+    ],
+    "IFP": [
+     0.0,
+     0
+    ]
+   },
+   "blocs": {
+    "ANC+EFF": [
+     0.71,
+     false
+    ],
+    "ANC+MK+EFF": [
+     0.79,
+     false
+    ],
+    "ANC+DA": [
+     0.96,
+     true
+    ],
+    "DA+FFP+ASA+IFP": [
+     0.0,
+     false
+    ],
+    "MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA+IFP": [
+     0.96,
+     true
+    ]
+   }
+  },
+  "NMA": {
+   "largest": [
+    "DA",
+    "DA"
+   ],
+   "hung": [
+    1.0,
+    true
+   ],
+   "seats": {
+    "ANC": [
+     34.0,
+     31
+    ],
+    "DA": [
+     44.4,
+     53
+    ],
+    "MK": [
+     1.8,
+     1
+    ],
+    "EFF": [
+     10.7,
+     7
+    ],
+    "IFP": [
+     0.0,
+     0
+    ]
+   },
+   "blocs": {
+    "ANC+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+MK+EFF": [
+     0.01,
+     false
+    ],
+    "ANC+DA": [
+     1.0,
+     true
+    ],
+    "DA+FFP+ASA+IFP": [
+     0.05,
+     false
+    ],
+    "MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA+IFP": [
+     1.0,
+     true
+    ]
+   }
+  },
+  "MAN": {
+   "largest": [
+    "ANC",
+    "ANC"
+   ],
+   "hung": [
+    1.0,
+    true
+   ],
+   "seats": {
+    "ANC": [
+     35.1,
+     36
+    ],
+    "DA": [
+     28.5,
+     34
+    ],
+    "MK": [
+     1.8,
+     1
+    ],
+    "EFF": [
+     13.1,
+     8
+    ],
+    "IFP": [
+     0.0,
+     0
+    ]
+   },
+   "blocs": {
+    "ANC+EFF": [
+     0.26,
+     false
+    ],
+    "ANC+MK+EFF": [
+     0.38,
+     false
+    ],
+    "ANC+DA": [
+     0.98,
+     true
+    ],
+    "DA+FFP+ASA+IFP": [
+     0.0,
+     false
+    ],
+    "MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA+IFP": [
+     0.98,
+     true
+    ]
+   }
+  },
+  "EKU": {
+   "largest": [
+    "DA",
+    "DA"
+   ],
+   "hung": [
+    1.0,
+    true
+   ],
+   "seats": {
+    "ANC": [
+     53.8,
+     56
+    ],
+    "DA": [
+     64.0,
+     65
+    ],
+    "MK": [
+     24.2,
+     15
+    ],
+    "EFF": [
+     19.9,
+     14
+    ],
+    "IFP": [
+     2.4,
+     2
+    ]
+   },
+   "blocs": {
+    "ANC+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+MK+EFF": [
+     0.1,
+     false
+    ],
+    "ANC+DA": [
+     0.67,
+     true
+    ],
+    "DA+FFP+ASA+IFP": [
+     0.09,
+     true
+    ],
+    "MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA+IFP": [
+     0.73,
+     true
+    ]
+   }
+  },
+  "JHB": {
+   "largest": [
+    "DA",
+    "DA"
+   ],
+   "hung": [
+    1.0,
+    true
+   ],
+   "seats": {
+    "ANC": [
+     54.5,
+     58
+    ],
+    "DA": [
+     80.4,
+     101
+    ],
+    "MK": [
+     26.2,
+     13
+    ],
+    "EFF": [
+     24.3,
+     17
+    ],
+    "IFP": [
+     3.8,
+     8
+    ]
+   },
+   "blocs": {
+    "ANC+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+MK+EFF": [
+     0.01,
+     false
+    ],
+    "ANC+DA": [
+     0.51,
+     true
+    ],
+    "DA+FFP+ASA+IFP": [
+     0.26,
+     true
+    ],
+    "MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA+IFP": [
+     0.62,
+     true
+    ]
+   }
+  },
+  "TSH": {
+   "largest": [
+    "DA",
+    "DA"
+   ],
+   "hung": [
+    1.0,
+    true
+   ],
+   "seats": {
+    "ANC": [
+     54.8,
+     46
+    ],
+    "DA": [
+     64.4,
+     70
+    ],
+    "MK": [
+     8.4,
+     5
+    ],
+    "EFF": [
+     20.0,
+     13
+    ],
+    "IFP": [
+     0.9,
+     0
+    ]
+   },
+   "blocs": {
+    "ANC+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA": [
+     0.88,
+     true
+    ],
+    "DA+FFP+ASA+IFP": [
+     0.35,
+     true
+    ],
+    "MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA+IFP": [
+     0.89,
+     true
+    ]
+   }
+  },
+  "ETH": {
+   "largest": [
+    "MK",
+    "MK"
+   ],
+   "hung": [
+    0.98,
+    true
+   ],
+   "seats": {
+    "ANC": [
+     22.8,
+     38
+    ],
+    "DA": [
+     59.7,
+     53
+    ],
+    "MK": [
+     89.6,
+     90
+    ],
+    "EFF": [
+     5.9,
+     4
+    ],
+    "IFP": [
+     13.6,
+     16
+    ]
+   },
+   "blocs": {
+    "ANC+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+MK+EFF": [
+     0.67,
+     true
+    ],
+    "ANC+DA": [
+     0.0,
+     false
+    ],
+    "DA+FFP+ASA+IFP": [
+     0.01,
+     false
+    ],
+    "MK+EFF": [
+     0.06,
+     false
+    ],
+    "ANC+DA+IFP": [
+     0.07,
+     false
+    ]
+   }
+  },
+  "CPT": {
+   "largest": [
+    "DA",
+    "DA"
+   ],
+   "hung": [
+    0.31,
+    false
+   ],
+   "seats": {
+    "ANC": [
+     36.6,
+     30
+    ],
+    "DA": [
+     125.2,
+     139
+    ],
+    "MK": [
+     3.1,
+     1
+    ],
+    "EFF": [
+     15.9,
+     8
+    ],
+    "IFP": [
+     0.7,
+     0
+    ]
+   },
+   "blocs": {
+    "ANC+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA": [
+     1.0,
+     true
+    ],
+    "DA+FFP+ASA+IFP": [
+     0.9,
+     true
+    ],
+    "MK+EFF": [
+     0.0,
+     false
+    ],
+    "ANC+DA+IFP": [
+     1.0,
+     true
+    ]
+   }
+  }
+ },
+ "kzn": {
+  "published_byelection_led": 0.7341490545050056,
+  "poll_led": 0.6674082313681868,
+  "outside_ethekwini": {
+   "published_byelection_led": 0.7116336633663366,
+   "poll_led": 0.6373762376237624
+  }
+ }
+}
