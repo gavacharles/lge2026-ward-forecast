@@ -1,6 +1,6 @@
 # Scorecard: test2021
 
-Wards scored: 4,468 of 4,468.
+Wards scored: 4,468 of 4,468 forecast.
 
 ## Ward winners
 
