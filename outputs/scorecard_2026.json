@@ -1,73 +1,73 @@
 {
  "label": "2026",
- "wards_scored": 4407,
+ "wards_scored": 4011,
  "wards_in_forecast": 4485,
- "ward_accuracy": 0.8141592920353983,
- "baseline_prev_local": 0.7701384161561152,
- "baseline_national_leader": 0.8500113455865669,
- "expected_accuracy": 0.833124801452235,
- "brier": 0.15851567233945996,
- "log_loss": 0.5965541890256795,
+ "ward_accuracy": 0.8070306656694092,
+ "baseline_prev_local": 0.7599102468212415,
+ "baseline_national_leader": 0.8456743954126154,
+ "expected_accuracy": 0.8231089503864374,
+ "brier": 0.164471757417103,
+ "log_loss": 0.6034694477837794,
  "calibration": {
   "(0.0, 0.5]": {
-   "wards": 231.0,
+   "wards": 226.0,
    "forecast": 0.44,
-   "won": 0.424
+   "won": 0.434
   },
   "(0.5, 0.6]": {
-   "wards": 404.0,
+   "wards": 392.0,
    "forecast": 0.549,
-   "won": 0.562
+   "won": 0.569
   },
   "(0.6, 0.7]": {
-   "wards": 398.0,
-   "forecast": 0.651,
-   "won": 0.603
+   "wards": 389.0,
+   "forecast": 0.65,
+   "won": 0.604
   },
   "(0.7, 0.8]": {
-   "wards": 479.0,
-   "forecast": 0.753,
-   "won": 0.737
+   "wards": 458.0,
+   "forecast": 0.752,
+   "won": 0.738
   },
   "(0.8, 0.9]": {
-   "wards": 704.0,
+   "wards": 677.0,
    "forecast": 0.855,
-   "won": 0.812
+   "won": 0.82
   },
   "(0.9, 0.95]": {
-   "wards": 529.0,
+   "wards": 498.0,
    "forecast": 0.928,
-   "won": 0.904
+   "won": 0.902
   },
   "(0.95, 1.0]": {
-   "wards": 1662.0,
+   "wards": 1371.0,
    "forecast": 0.984,
-   "won": 0.975
+   "won": 0.977
   }
  },
  "by_rating": {
-  "Safe": 0.957553628480146,
-  "Likely": 0.8004201680672269,
-  "Lean": 0.6406995230524642,
-  "Toss-up": 0.5118110236220472
+  "Safe": 0.956661316211878,
+  "Likely": 0.8041804180418042,
+  "Lean": 0.6455284552845528,
+  "Toss-up": 0.5194174757281553
  },
  "national": {
   "ANC": {
    "forecast": 29.3,
-   "actual": 31.4,
-   "error": -2.1,
+   "actual": 30.2,
+   "error": -0.9,
    "in_90": "True"
   },
   "DA": {
    "forecast": 25.3,
-   "actual": 24.2,
-   "error": 1.1,
+   "actual": 24.7,
+   "error": 0.6,
    "in_90": "True"
   },
   "MK": {
    "forecast": 10.4,
-   "actual": 9.5,
-   "error": 0.9,
+   "actual": 10.0,
+   "error": 0.4,
    "in_90": "True"
   },
   "EFF": {
@@ -78,71 +78,71 @@
   },
   "IFP": {
    "forecast": 5.2,
-   "actual": 5.0,
-   "error": 0.2,
+   "actual": 5.3,
+   "error": -0.1,
    "in_90": "True"
   },
   "PA": {
    "forecast": 2.0,
-   "actual": 2.0,
-   "error": -0.0,
+   "actual": 2.1,
+   "error": -0.1,
    "in_90": "True"
   },
   "FFP": {
    "forecast": 3.0,
-   "actual": 3.0,
-   "error": -0.0,
+   "actual": 3.2,
+   "error": -0.2,
    "in_90": "True"
   },
   "ASA": {
    "forecast": 3.8,
-   "actual": 4.8,
-   "error": -1.1,
+   "actual": 5.2,
+   "error": -1.5,
    "in_90": "True"
   },
   "OTH": {
    "forecast": 12.5,
-   "actual": 14.0,
-   "error": -1.5,
+   "actual": 13.0,
+   "error": -0.6,
    "in_90": "True"
   }
  },
  "ward_share_mae_pts": {
   "ANC": 8.3,
-  "DA": 5.2,
-  "MK": 3.5,
-  "EFF": 4.3,
-  "IFP": 1.5,
+  "DA": 5.3,
+  "MK": 3.7,
+  "EFF": 4.2,
+  "IFP": 1.6,
   "PA": 1.2,
-  "FFP": 1.2,
-  "ASA": 2.2,
-  "OTH": 8.7
+  "FFP": 1.3,
+  "ASA": 2.4,
+  "OTH": 8.3
  },
  "provinces": {
   "Eastern Cape": {
    "biggest_miss": [
     "EFF",
-    4.2
+    5.2
    ],
    "ANC": [
-    49.0,
-    45.4
+    47.9,
+    47.0
    ],
    "DA": [
-    18.2,
-    17.9
+    20.7,
+    17.1
    ],
    "MK": [
-    2.0,
-    1.7
+    1.1,
+    0.9
    ],
    "IFP": [
     0.0,
-    0.2
+    0.0
    ],
    "EFF": [
-    9.9,
-    5.7
+    10.5,
+    5.3
    ],
    "ASA": [
     1.1,
@@ -182,15 +182,15 @@
   "Gauteng": {
    "biggest_miss": [
     "ASA",
-    -6.1
+    -6.2
    ],
    "ANC": [
     21.3,
-    21.1
+    21.0
    ],
    "DA": [
     32.2,
-    35.0
+    35.1
    ],
    "MK": [
     8.3,
@@ -206,33 +206,33 @@
    ],
    "ASA": [
     9.9,
-    16.1
+    16.2
    ]
   },
   "KwaZulu-Natal": {
    "biggest_miss": [
     "ANC",
-    -4.3
+    -4.4
    ],
    "ANC": [
     16.7,
     21.1
    ],
    "DA": [
-    12.4,
+    12.7,
     12.3
    ],
    "MK": [
-    31.3,
+    31.2,
     33.8
    ],
    "IFP": [
-    24.1,
-    22.1
+    23.9,
+    22.0
    ],
    "EFF": [
     2.5,
-    1.9
+    1.8
    ],
    "ASA": [
     0.6,
@@ -241,8 +241,8 @@
   },
   "Limpopo": {
    "biggest_miss": [
-    "EFF",
-    3.3
+    "ANC",
+    3.2
    ],
    "ANC": [
     58.0,
@@ -250,7 +250,7 @@
    ],
    "DA": [
     8.4,
-    8.0
+    7.9
    ],
    "MK": [
     1.1,
@@ -262,7 +262,7 @@
    ],
    "EFF": [
     13.9,
-    10.6
+    10.7
    ],
    "ASA": [
     3.3,
@@ -284,7 +284,7 @@
    ],
    "MK": [
     15.8,
-    9.6
+    9.5
    ],
    "IFP": [
     0.2,
@@ -309,7 +309,7 @@
     44.5
    ],
    "DA": [
-    16.6,
+    16.5,
     14.2
    ],
    "MK": [
@@ -321,11 +321,11 @@
     0.1
    ],
    "EFF": [
-    15.4,
+    15.5,
     12.3
    ],
    "ASA": [
-    7.7,
+    7.6,
     6.4
    ]
   },
@@ -362,7 +362,7 @@
   "Western Cape": {
    "biggest_miss": [
     "DA",
-    2.6
+    2.7
    ],
    "ANC": [
     13.4,
@@ -386,14 +386,14 @@
    ],
    "ASA": [
     1.1,
-    1.5
+    1.6
    ]
   }
  },
  "councils": {
-  "scored": 213,
-  "largest_party_correct": 0.7793427230046949,
-  "hung_status_correct": 0.8450704225352113
+  "scored": 198,
+  "largest_party_correct": 0.7626262626262627,
+  "hung_status_correct": 0.8383838383838383
  },
  "metros": {
   "BUF": {
@@ -454,68 +454,6 @@
     ],
     "ANC+DA+IFP": [
      0.96,
-     true
-    ]
-   }
-  },
-  "NMA": {
-   "largest": [
-    "DA",
-    "DA"
-   ],
-   "hung": [
-    1.0,
-    true
-   ],
-   "seats": {
-    "ANC": [
-     34.0,
-     31
-    ],
-    "DA": [
-     44.4,
-     53
-    ],
-    "MK": [
-     1.8,
-     1
-    ],
-    "EFF": [
-     10.7,
-     7
-    ],
-    "IFP": [
-     0.0,
-     0
-    ],
-    "ASA": [
-     3.4,
-     2
-    ]
-   },
-   "blocs": {
-    "ANC+EFF": [
-     0.0,
-     false
-    ],
-    "ANC+MK+EFF": [
-     0.01,
-     false
-    ],
-    "ANC+DA": [
-     1.0,
-     true
-    ],
-    "DA+FFP+ASA+IFP": [
-     0.05,
-     false
-    ],
-    "MK+EFF": [
-     0.0,
-     false
-    ],
-    "ANC+DA+IFP": [
-     1.0,
      true
     ]
    }
@@ -598,7 +536,7 @@
     ],
     "DA": [
      64.0,
-     65
+     66
     ],
     "MK": [
      24.2,
@@ -614,7 +552,7 @@
     ],
     "ASA": [
      20.2,
-     41
+     40
     ]
    },
    "blocs": {
@@ -660,7 +598,7 @@
     ],
     "DA": [
      80.4,
-     101
+     100
     ],
     "MK": [
      26.2,
@@ -676,7 +614,7 @@
     ],
     "ASA": [
      34.5,
-     40
+     41
     ]
    },
    "blocs": {
@@ -718,11 +656,11 @@
    "seats": {
     "ANC": [
      54.8,
-     46
+     45
     ],
     "DA": [
      64.4,
-     70
+     71
     ],
     "MK": [
      8.4,
@@ -846,7 +784,7 @@
     ],
     "DA": [
      125.2,
-     139
+     138
     ],
     "MK": [
      3.1,
@@ -894,11 +832,11 @@
   }
  },
  "kzn": {
-  "published_byelection_led": 0.7341490545050056,
-  "poll_led": 0.6674082313681868,
+  "published_byelection_led": 0.7372505543237251,
+  "poll_led": 0.6662971175166297,
   "outside_ethekwini": {
-   "published_byelection_led": 0.7116336633663366,
-   "poll_led": 0.6373762376237624
+   "published_byelection_led": 0.7144622991347342,
+   "poll_led": 0.6353522867737948
   }
  }
 }
