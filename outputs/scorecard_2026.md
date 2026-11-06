@@ -1,53 +1,53 @@
 # Scorecard: 2026
 
-Wards scored: 4,011 of 4,485 forecast (474 forecast ward IDs do not appear in the results).
+Wards scored: 4,415 of 4,485 forecast (70 forecast ward IDs do not appear in the results).
 
 ## Ward winners
 
 | Method | Called correctly |
 |---|---|
-| **This forecast** | **80.7%** |
-| Carry forward the previous local winner | 76.0% |
-| Carry forward the last national-ballot leader | 84.6% |
-| What the forecast expected (average favourite chance) | 82.3% |
+| **This forecast** | **81.4%** |
+| Carry forward the previous local winner | 77.0% |
+| Carry forward the last national-ballot leader | 84.9% |
+| What the forecast expected (average favourite chance) | 83.3% |
 
-Brier score 0.164 · log loss 0.603 (lower is better).
+Brier score 0.159 · log loss 0.600 (lower is better).
 
-By rating: Safe 95.7% · Likely 80.4% · Lean 64.6% · Toss-up 51.9%
+By rating: Safe 95.7% · Likely 79.9% · Lean 64.3% · Toss-up 51.6%
 
 ## Calibration
 
 | Forecast chance | Wards | Average forecast | Favourite won |
 |---|---|---|---|
-| (0.0, 0.5] | 226 | 44.0% | 43.4% |
-| (0.5, 0.6] | 392 | 54.9% | 56.9% |
-| (0.6, 0.7] | 389 | 65.0% | 60.4% |
-| (0.7, 0.8] | 458 | 75.2% | 73.8% |
-| (0.8, 0.9] | 677 | 85.5% | 82.0% |
-| (0.9, 0.95] | 498 | 92.8% | 90.2% |
-| (0.95, 1.0] | 1371 | 98.4% | 97.7% |
+| (0.0, 0.5] | 231 | 44.0% | 43.3% |
+| (0.5, 0.6] | 405 | 54.9% | 56.3% |
+| (0.6, 0.7] | 398 | 65.1% | 60.3% |
+| (0.7, 0.8] | 480 | 75.3% | 73.5% |
+| (0.8, 0.9] | 705 | 85.5% | 81.3% |
+| (0.9, 0.95] | 531 | 92.8% | 90.2% |
+| (0.95, 1.0] | 1665 | 98.4% | 97.5% |
 
 ## National vote share (ward ballot)
 
 | Party | Forecast | Actual | Error | Inside 90% range |
 |---|---|---|---|---|
-| ANC | 29.3 | 30.2 | -0.9 | yes |
-| DA | 25.3 | 24.7 | +0.6 | yes |
-| MK | 10.4 | 10.0 | +0.4 | yes |
+| ANC | 29.3 | 31.3 | -2.0 | yes |
+| DA | 25.3 | 24.3 | +1.0 | yes |
+| MK | 10.4 | 9.5 | +0.9 | yes |
 | EFF | 8.6 | 6.2 | +2.4 | yes |
-| IFP | 5.2 | 5.3 | -0.1 | yes |
-| PA | 2.0 | 2.1 | -0.1 | yes |
-| FFP | 3.0 | 3.2 | -0.2 | yes |
-| ASA | 3.8 | 5.2 | -1.5 | yes |
-| OTH | 12.5 | 13.0 | -0.6 | yes |
+| IFP | 5.2 | 5.0 | +0.2 | yes |
+| PA | 2.0 | 2.0 | -0.0 | yes |
+| FFP | 3.0 | 3.0 | -0.0 | yes |
+| ASA | 3.8 | 4.9 | -1.1 | yes |
+| OTH | 12.5 | 14.0 | -1.5 | yes |
 
-Average ward-level error (points): ANC 8.3, DA 5.3, MK 3.7, EFF 4.2, IFP 1.6, PA 1.2, FFP 1.3, ASA 2.4, OTH 8.3
+Average ward-level error (points): ANC 8.3, DA 5.2, MK 3.5, EFF 4.3, IFP 1.5, PA 1.2, FFP 1.2, ASA 2.2, OTH 8.7
 
 ## Provinces
 
 | Province | Biggest miss (pts) | ANC fc / actual | DA | MK | IFP | ActionSA |
 |---|---|---|---|---|---|---|
-| Eastern Cape | EFF +5.2 | 47.9 / 47.0 | 20.7 / 17.1 | 1.1 / 0.9 | 0.0 / 0.0 | 1.1 / 0.7 |
+| Eastern Cape | EFF +4.2 | 49.0 / 45.3 | 18.2 / 18.0 | 2.0 / 1.7 | 0.0 / 0.2 | 1.1 / 0.7 |
 | Free State | EFF +4.4 | 32.8 / 37.0 | 29.7 / 27.2 | 2.0 / 1.4 | 0.1 / 0.2 | 2.0 / 1.5 |
 | Gauteng | ASA -6.2 | 21.3 / 21.0 | 32.2 / 35.1 | 8.3 / 4.7 | 0.9 / 1.3 | 9.9 / 16.2 |
 | KwaZulu-Natal | ANC -4.4 | 16.7 / 21.1 | 12.7 / 12.3 | 31.2 / 33.8 | 23.9 / 22.0 | 0.6 / 1.0 |
@@ -59,11 +59,12 @@ Average ward-level error (points): ANC 8.3, DA 5.3, MK 3.7, EFF 4.2, IFP 1.6, PA
 
 ## Councils
 
-198 councils: largest party right in 76.3%, majority-or-hung right in 83.8% (seats from the same formula as the forecast).
+213 councils: largest party right in 77.5%, majority-or-hung right in 85.0% (seats from the same formula as the forecast).
 
 | Metro | Largest (fc / actual) | Hung (fc chance / actual) | Seats ANC | DA | MK | ActionSA |
 |---|---|---|---|---|---|---|
 | BUF | ANC / ANC | 97% / hung | 37.5 / 42 | 22.5 / 17 | 1.8 / 1 | 3.1 / 1 |
+| NMA | DA / DA | 100% / hung | 34.0 / 31 | 44.4 / 53 | 1.8 / 2 | 3.4 / 2 |
 | MAN | ANC / ANC | 100% / hung | 35.1 / 36 | 28.5 / 34 | 1.8 / 1 | 3.2 / 3 |
 | EKU | DA / DA | 100% / hung | 53.8 / 56 | 64.0 / 66 | 24.2 / 15 | 20.2 / 40 |
 | JHB | DA / DA | 100% / hung | 54.5 / 58 | 80.4 / 100 | 26.2 / 13 | 34.5 / 41 |

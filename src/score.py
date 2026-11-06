@@ -284,6 +284,17 @@ def report(r):
     return "\n".join(L) + "\n"
 
 
+def check_coverage(w, R, min_total=0.97, min_province=0.90):
+    """Stop before scoring if the results are missing a chunk of any province's wards. A download caught while the
+    IEC was rewriting its files once scored 4,011 wards instead of about 4,415, and the site published it."""
+    have = set(R[R.ballot == "ward"].ward.astype(str))
+    found = pd.Series(w.index.astype(str).isin(have), index=w.index)
+    by_prov = found.groupby(w.province).mean()
+    if found.mean() < min_total or (by_prov < min_province).any():
+        sys.exit(f"Results look incomplete; not scoring. {found.mean():.1%} of forecast wards found. By province:\n"
+                 + by_prov.map("{:.1%}".format).to_string())
+
+
 def main(which):
     if which == "test2021":
         w, m, s, alt = forecast_test2021()
@@ -291,6 +302,7 @@ def main(which):
     elif which == "2026":
         w, m, s, alt = forecast_2026()
         R = results_2026()
+        check_coverage(w, R)
     else:
         sys.exit(__doc__)
     A = actual_tables(R, w, m)

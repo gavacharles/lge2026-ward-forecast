@@ -153,7 +153,12 @@ def download(pr, tries=4):
     for attempt in range(1, tries + 1):
         try:
             r = requests.get(LIVE_URL.format(pr=pr), headers={"User-Agent": "Mozilla/5.0"}, timeout=300)
-            return r.content if r.status_code == 200 else None
+            if r.status_code != 200:
+                return None
+            expected = r.headers.get("Content-Length")
+            if expected and int(expected) != len(r.content):  # the IEC rewrites files in place; never use a partial copy
+                raise requests.exceptions.ConnectionError(f"got {len(r.content):,} of {int(expected):,} bytes")
+            return r.content
         except (requests.exceptions.ChunkedEncodingError, requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout) as e:
             if attempt == tries:
