@@ -193,9 +193,11 @@
       ['Councils: majority or hung right', pc(sc.councils.hung_status_correct)],
     ];
     if (sc.kzn) rows.push(['KZN: by-election-led (published) / poll-led', `${pc(sc.kzn.published_byelection_led)} / ${pc(sc.kzn.poll_led)}`]);
-    for (const p of ['ANC', 'DA', 'MK', 'EFF', 'IFP']) {
+    const label = { ASA: 'ActionSA', FFP: 'FF+' };
+    for (const p of ['ANC', 'DA', 'MK', 'EFF', 'IFP', 'ASA', 'PA', 'FFP']) {
       const n = sc.national[p];
-      rows.push([`${p} national: forecast / actual`, `${n.forecast} / ${n.actual}${n.in_90 === false ? ' (outside range)' : ''}`]);
+      if (!n) continue;
+      rows.push([`${label[p] || p} national: forecast / actual`, `${n.forecast} / ${n.actual}${n.in_90 === false ? ' (outside range)' : ''}`]);
     }
     for (const [k, v] of rows) tb.append(el('tr', {}, el('td', {}, k), el('td', { className: 'n' }, v)));
     // one-line verdict, so the comparison with the simple rules is stated rather than left to the reader

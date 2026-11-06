@@ -215,7 +215,7 @@ def score(w, m, s, alt, A, label):
         err = ((f - a)[PARTIES] * 100).round(1)
         big = err.abs().idxmax()
         pv[prov] = {"biggest_miss": [big, float(err[big])],
-                    **{p: [round(float(f[p] * 100), 1), round(float(a[p] * 100), 1)] for p in ["ANC", "DA", "MK", "IFP", "EFF"]}}
+                    **{p: [round(float(f[p] * 100), 1), round(float(a[p] * 100), 1)] for p in ["ANC", "DA", "MK", "IFP", "EFF", "ASA"]}}
     res["provinces"] = pv
     # councils
     mi = m.index.intersection(A["seats"].index)
@@ -230,7 +230,7 @@ def score(w, m, s, alt, A, label):
     for c in [x for x in METROS if x in mi]:
         sa = seats_act.loc[c]
         metros[c] = {"largest": [m.at[c, "largest_party"], largest_act[c]], "hung": [round(float(m.at[c, "p_hung"]), 2), bool(hung_act[c])],
-                     "seats": {p: [round(float(m.at[c, f"seats_{p}"]), 1), int(sa[p])] for p in ["ANC", "DA", "MK", "EFF", "IFP"]},
+                     "seats": {p: [round(float(m.at[c, f"seats_{p}"]), 1), int(sa[p])] for p in ["ANC", "DA", "MK", "EFF", "IFP", "ASA"]},
                      "blocs": {b: [round(float(m.at[c, f"p_bloc_{b}"]), 2), bool(sa[[p for p in ps if p in COLS]].sum() > half[c])]
                                for b, ps in blocs.items() if f"p_bloc_{b}" in m}}
     res["metros"] = metros
@@ -265,17 +265,17 @@ def report(r):
     L += [f"| {p} | {v['forecast']} | {v['actual']} | {v['error']:+.1f} | {'' if v['in_90'] is None else ('yes' if v['in_90'] else 'no')} |"
           for p, v in r["national"].items()]
     L += ["", "Average ward-level error (points): " + ", ".join(f"{p} {v}" for p, v in r["ward_share_mae_pts"].items()), "",
-          "## Provinces", "", "| Province | Biggest miss (pts) | ANC fc / actual | DA | MK | IFP |", "|---|---|---|---|---|---|"]
-    L += [f"| {k} | {v['biggest_miss'][0]} {v['biggest_miss'][1]:+.1f} | {v['ANC'][0]} / {v['ANC'][1]} | {v['DA'][0]} / {v['DA'][1]} | {v['MK'][0]} / {v['MK'][1]} | {v['IFP'][0]} / {v['IFP'][1]} |"
+          "## Provinces", "", "| Province | Biggest miss (pts) | ANC fc / actual | DA | MK | IFP | ActionSA |", "|---|---|---|---|---|---|---|"]
+    L += [f"| {k} | {v['biggest_miss'][0]} {v['biggest_miss'][1]:+.1f} | {v['ANC'][0]} / {v['ANC'][1]} | {v['DA'][0]} / {v['DA'][1]} | {v['MK'][0]} / {v['MK'][1]} | {v['IFP'][0]} / {v['IFP'][1]} | {v['ASA'][0]} / {v['ASA'][1]} |"
           for k, v in r["provinces"].items()]
     c = r["councils"]
     L += ["", "## Councils", "", f"{c['scored']} councils: largest party right in {pct(c['largest_party_correct'])}, "
           f"majority-or-hung right in {pct(c['hung_status_correct'])} (seats from the same formula as the forecast).", "",
-          "| Metro | Largest (fc / actual) | Hung (fc chance / actual) | Seats ANC | DA | MK |", "|---|---|---|---|---|---|"]
+          "| Metro | Largest (fc / actual) | Hung (fc chance / actual) | Seats ANC | DA | MK | ActionSA |", "|---|---|---|---|---|---|---|"]
     for k, v in r["metros"].items():
         s = v["seats"]
         L.append(f"| {k} | {v['largest'][0]} / {v['largest'][1]} | {v['hung'][0]:.0%} / {'hung' if v['hung'][1] else 'majority'} | "
-                 f"{s['ANC'][0]} / {s['ANC'][1]} | {s['DA'][0]} / {s['DA'][1]} | {s['MK'][0]} / {s['MK'][1]} |")
+                 f"{s['ANC'][0]} / {s['ANC'][1]} | {s['DA'][0]} / {s['DA'][1]} | {s['MK'][0]} / {s['MK'][1]} | {s['ASA'][0]} / {s['ASA'][1]} |")
     if "kzn" in r:
         k = r["kzn"]
         L += ["", "## KwaZulu-Natal: which reading was right?", "", "| Ward winners called | By-election-led (published) | Poll-led |",

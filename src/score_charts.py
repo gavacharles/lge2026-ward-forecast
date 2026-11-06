@@ -287,12 +287,13 @@ def sc5_provinces(D):
     anc_up = sum(pv[k]["ANC"][1] > pv[k]["ANC"][0] for k in pv)
     da_down = sum(pv[k]["DA"][1] < pv[k]["DA"][0] for k in pv)
     fig = frame(f"The DA fell short of its forecast in {da_down} of {len(pv)} provinces",
-                f"Ward-ballot vote share by province: forecast (hollow) and result (filled). The ANC beat its forecast in {anc_up}. Errors that run the\n"
-                "same way across many wards are why US forecasters treat one election as nearer one data point than thousands of tests.",
-                size=(11, 6.2))
+                f"Ward-ballot vote share by province: forecast (hollow), result (filled). The ANC beat its forecast in {anc_up}, and ActionSA beat it by "
+                f"{pv['Gauteng']['ASA'][1] - pv['Gauteng']['ASA'][0]:.1f}\npoints in Gauteng. Errors running the same way across many wards are why "
+                "one election is nearer one data point than thousands of tests.",
+                size=(13, 6.4))
     order = sorted(pv, key=lambda k: pv[k]["ANC"][1] - pv[k]["ANC"][0], reverse=True)
-    for j, p in enumerate(["ANC", "DA"]):
-        ax = fig.add_axes([0.2 + j * 0.41, 0.1, 0.36, 0.64])
+    for j, p in enumerate(["ANC", "DA", "ASA"]):
+        ax = fig.add_axes([0.16 + j * 0.28, 0.1, 0.24, 0.6])
         n = len(order)
         for i, prov in enumerate(order):
             y = n - 1 - i
@@ -307,7 +308,7 @@ def sc5_provinces(D):
         ax.set_yticklabels(order[::-1] if j == 0 else [""] * n)
         ax.set_xlim(0, 72)
         ax.set_ylim(-0.6, n - 0.4)
-        ax.set_title(f"{p} share (%), result minus forecast", loc="left", fontsize=12, fontweight="bold", pad=8)
+        ax.set_title(f"{nm(p)} share (%)", loc="left", fontsize=12, fontweight="bold", pad=8)
         quiet(ax)
     fig.savefig(OUT / "sc5_provinces.png")
     plt.close(fig)

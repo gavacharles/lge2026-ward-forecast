@@ -7,6 +7,7 @@ Run after score.py 2026. Same dark style as x1_the_gap.mp4.
   x11_party_tilt    too generous to the DA, too stingy to the ANC
   x12_ward_totals   vote shares in range; the ANC's ward total broke out
   x13_calibration   were the chances honest?
+  x14_actionsa      ActionSA: the right number of wards in the wrong places, and double the seats in two metros
 """
 import imageio.v2 as iio
 import matplotlib.pyplot as plt
@@ -85,7 +86,6 @@ def receipts_rows(D):
     metros_right = sum(v["largest"][0] == v["largest"][1] and (v["hung"][0] > 0.5) == v["hung"][1] for v in metros.values())
     big3 = all(metros[c]["largest"][1] == "DA" for c in ("JHB", "TSH", "EKU"))
     nat = card["national"]["ANC"]
-    ifp_fav = int((w.fav_c == "IFP").sum() + (D["unmatched"].favourite == "IFP").sum())
     return [
         ("ANC wins over half the wards", f"{(sim.ANC > sim.sum(axis=1) / 2).mean():.0%} chance",
          f"{won['ANC']:,} of {n:,} ({won['ANC'] / n:.0%})", "right" if won["ANC"] > n / 2 else "wrong"),
@@ -98,29 +98,32 @@ def receipts_rows(D):
          "right" if metros_right == 8 else "mixed"),
         ("ANC vote share about 29%", f"{nat['forecast']}%", f"{nat['actual']}%, inside the range", "mixed"),
         ("IFP favoured in 410 wards", "the by-election call", f"Won {won['IFP']:,}", "wrong"),
-        ("DA wins about 1,100 wards", f"{D['sim'].DA.median():,.0f} expected", f"Won {won['DA']:,}", "wrong"),
+        ("DA wins about 1,100 wards", f"{D['sim'].DA.mean():,.0f} expected", f"Won {won['DA']:,}", "wrong"),
+        (f"ActionSA wins about {D['sim'].ASA.mean():,.0f} wards", f"{D['sim'].ASA.mean():,.0f} expected",
+         f"Won {won['ASA']:,}, in the wrong wards", "mixed"),
     ]
 
 
 def x8_receipts(D):
     rows = receipts_rows(D)
     style = {"right": ("✓", "Right", GOOD), "mixed": ("≈", "Close", MIXED), "wrong": ("✗", "Missed", BAD)}
-    n_right = sum(r[3] == "right" for r in rows)
+    tally = {v: sum(r[3] == v for r in rows) for v in ("right", "mixed", "wrong")}
 
     def draw(fig, t):
         head(fig, "What I said vs what happened",
-             f"My final forecast, frozen the night before the vote, against the IEC results. {n_right} of {len(rows)} right.",
+             f"My final forecast, frozen the night before the vote, against the IEC results. "
+             f"{tally['right']} right, {tally['mixed']} close, {tally['wrong']} missed.",
              a=seg(t, 0, 0.08))
-        top, step = 0.72, 0.088
-        for x, lab in ((0.05, "THE FORECAST SAID"), (0.47, "HOW SURE"), (0.66, "WHAT HAPPENED")):
+        top, step = 0.72, 0.08
+        for x, lab in ((0.05, "THE FORECAST SAID"), (0.45, "HOW SURE"), (0.625, "WHAT HAPPENED")):
             fig.text(x, top + 0.045, lab, fontsize=10.5, color=MUTED, alpha=seg(t, 0.05, 0.12), fontweight="bold")
         for i, (claim, conf, result, verdict) in enumerate(rows):
             y = top - i * step
-            a = seg(t, 0.1 + i * 0.1, 0.16 + i * 0.1)        # the claim appears
-            b = seg(t, 0.15 + i * 0.1, 0.2 + i * 0.1)         # then the verdict
+            a = seg(t, 0.1 + i * 0.09, 0.16 + i * 0.09)      # the claim appears
+            b = seg(t, 0.15 + i * 0.09, 0.2 + i * 0.09)       # then the verdict
             fig.text(0.05, y, claim, fontsize=15.5, color=INK, va="center", alpha=a)
-            fig.text(0.47, y, conf, fontsize=13, color=MUTED, va="center", alpha=a)
-            fig.text(0.66, y, result, fontsize=14, color=INK, va="center", alpha=b)
+            fig.text(0.45, y, conf, fontsize=13, color=MUTED, va="center", alpha=a)
+            fig.text(0.625, y, result, fontsize=14, color=INK, va="center", alpha=b)
             sym, word, c = style[verdict]
             fig.text(0.875, y, sym, fontsize=20, color=c, va="center", ha="center", alpha=b, fontfamily="DejaVu Sans",
                      fontweight="bold")
@@ -305,11 +308,76 @@ def x13_calibration(D):
     render("x13_calibration", 8.0, draw, hold=4.0)
 
 
+# ---------- x14: ActionSA ----------
+
+def x14_actionsa(D):
+    w, card = D["w"], D["card"]
+    asa = SC.COL["ASA"]
+    metros = [("TSH", "Tshwane"), ("EKU", "Ekurhuleni"), ("JHB", "Johannesburg")]
+    seats = [(name, *card["metros"][c]["seats"]["ASA"]) for c, name in metros]
+    won = w[w.act_c == "ASA"]
+    by_fav = won.fav_c.value_counts()
+    picked = int(by_fav.get("ASA", 0))
+    gp = card["provinces"]["Gauteng"]["ASA"]
+
+    def draw(fig, t):
+        head(fig, "ActionSA doubled its forecast seats in Tshwane and Ekurhuleni",
+             f"My model had ActionSA on {gp[0]}% in Gauteng. It got {gp[1]}%. The ward total was close "
+             f"({D['sim'].ASA.mean():.0f} expected, {len(won)} won),\nbut it won them in the wrong places: "
+             f"only {picked} of its {len(won)} wards were ones I had it favoured to win.", a=seg(t, 0, 0.08))
+        # left: council seats, forecast (hollow) to result (filled)
+        fig.text(0.05, 0.71, "Council seats: forecast and result", fontsize=14, color=INK, fontweight="bold", alpha=seg(t, 0.05, 0.12))
+        ax = axes(fig, [0.17, 0.14, 0.33, 0.52])
+        mv = seg(t, 0.2, 0.5)
+        n = len(seats)
+        for i, (name, f, a) in enumerate(seats):
+            y = n - 1 - i
+            al = seg(t, 0.08 + i * 0.04, 0.16 + i * 0.04)
+            x = f + (a - f) * mv
+            ax.plot([f, x], [y, y], color=GRID, linewidth=4, alpha=al, zorder=1)
+            ax.scatter(f, y, s=260, facecolor=BG, edgecolor=asa, linewidth=2.5, zorder=3, alpha=al)
+            if mv > 0:
+                ax.scatter(x, y, s=260, color=asa, edgecolor=BG, linewidth=2, zorder=4)
+            if mv >= 1:
+                ax.text(f, y + 0.3, f"{int(f + 0.5)}", ha="center", fontsize=12.5, color=MUTED)
+                ax.text(a, y + 0.3, f"{a}", ha="center", fontsize=15, color=INK, fontweight="bold")
+        ax.set_yticks(range(n))
+        ax.set_yticklabels([s_[0] for s_ in seats][::-1], color=INK, fontsize=14)
+        ax.set_xlim(0, 60)
+        ax.set_ylim(-0.6, n - 0.2)
+        # right: one square per ward ActionSA won, filled if the model had it favoured there
+        fig.text(0.58, 0.71, f"The {len(won)} wards ActionSA won", fontsize=14, color=INK, fontweight="bold", alpha=seg(t, 0.05, 0.12))
+        order = [("ASA", "I had ActionSA favoured"), ("ANC", "I had the ANC favoured"), ("DA", "I had the DA favoured"),
+                 ("EFF", "I had the EFF favoured")]
+        shown = int(round(seg(t, 0.45, 0.8) * len(won)))
+        k, size, gap, per_row, x0, y0 = 0, 0.0215, 0.006, 12, 0.58, 0.62
+        for code, lab in order:
+            for _ in range(int(by_fav.get(code, 0))):
+                if k < shown:
+                    r_, c_ = divmod(k, per_row)
+                    filled = code == "ASA"
+                    fig.add_artist(plt.Rectangle((x0 + c_ * (size + gap), y0 - r_ * (size * 1.78 + gap) - size * 1.78),
+                                                 size, size * 1.78, transform=fig.transFigure,
+                                                 facecolor=asa if filled else BG, edgecolor=asa, linewidth=1.6))
+                k += 1
+        lg = seg(t, 0.8, 0.9)
+        ly = 0.25
+        fig.add_artist(plt.Rectangle((0.58, ly - 0.012), 0.016, 0.028, transform=fig.transFigure, color=asa, alpha=lg))
+        fig.text(0.602, ly, f"{picked}: wards I had ActionSA favoured to win", fontsize=13, color=INK, va="center", alpha=lg)
+        fig.add_artist(plt.Rectangle((0.58, ly - 0.072), 0.016, 0.028, transform=fig.transFigure, facecolor=BG,
+                                     edgecolor=asa, linewidth=1.6, alpha=lg))
+        others = ", ".join(f"{SC.nm(c)} {int(by_fav[c])}" for c in ("ANC", "DA", "EFF") if by_fav.get(c, 0))
+        fig.text(0.602, ly - 0.06, f"{len(won) - picked}: I had someone else favoured ({others})", fontsize=13, color=INK,
+                 va="center", alpha=lg)
+
+    render("x14_actionsa", 9.0, draw, hold=4.0)
+
+
 def main(only=()):
     """python src/x_scorecard.py [x10 x12 ...] renders only the named clips."""
     OUT.mkdir(parents=True, exist_ok=True)
     D = SC.load()
-    for f in (x8_receipts, x9_simple_rule, x10_upsets, x11_party_tilt, x12_ward_totals, x13_calibration):
+    for f in (x8_receipts, x9_simple_rule, x10_upsets, x11_party_tilt, x12_ward_totals, x13_calibration, x14_actionsa):
         if not only or f.__name__.split("_")[0] in only:
             f(D)
 
