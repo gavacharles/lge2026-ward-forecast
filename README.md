@@ -1,58 +1,48 @@
-# LGE 2026 ward forecast (South Africa, 4 Nov 2026)
+# lge2026-ward-forecast
 
-**Live map:** https://gavacharles.github.io/lge2026-ward-forecast/ · **Methodology and margins of error:** [METHODOLOGY.md](METHODOLOGY.md) · **Full write-up:** [REPORT.md](REPORT.md)
+Python model, automation and static site for an independent ward-level forecast of South Africa's 4 November 2026 local government elections. Not affiliated with the IEC, the Municipal Demarcation Board or any party.
 
-An independent model, not affiliated with the IEC, the Municipal Demarcation Board or any party.
-It gives a favourite and a win probability for each of the 4,485 wards, expected council seats and
-coalition arithmetic for every municipality, and live updates on election night.
+Live map: https://gavacharles.github.io/lge2026-ward-forecast/ · Method: [METHODOLOGY.md](METHODOLOGY.md) · Write-up: [REPORT.md](REPORT.md)
 
-## How it works, in brief
+## What the code does
 
-1. Past results (2011–2024) are re-added inside the 2026 wards, one voting district at a time.
-2. A per-party model, fitted on the 2016 and 2021 elections, links a ward's latest national result and
-   previous local result to its next local result.
-3. By-elections since 2024 adjust wards by province and community type. In KwaZulu-Natal outside
-   eThekwini (no polls) they also set party levels; a poll-led alternative is published alongside.
-4. Parties without a ward candidate (IEC certified lists) get no votes in that ward.
-5. Polls set each party's overall level (recency-weighted, corrected for each pollster's lean in 2024).
-6. 2,000 simulations give win chances, council seats and coalition odds.
-7. On election night a nowcast blends counted voting districts with the forecast.
+It rebuilds past results (2011–2024) inside the 2026 wards by voting district, fits a per-party model on the 2016 and 2021 elections, adjusts with by-elections and polls, removes parties without a ward candidate, and runs 2,000 simulations for ward win probabilities, council seats and coalition odds. On election night a nowcast blends counted voting districts with the forecast.
 
-In backtests the model called 94.2% (2016) and 90.8% (2021) of ward winners correctly, ahead of simple
-carry-forward baselines (92.8% and 89.3%). See [REPORT.md](REPORT.md) for methods, results and limits.
+## Layout
 
-## Run it
+| Path | What it is |
+|---|---|
+| `src/` | Pipeline, download, backtest, forecast, nowcast, freeze, scoring and site-build scripts |
+| `config/` | Polls (`polls_2026.csv` from Wikipedia, `polls_2026_extra.csv` by hand), ward candidates, coalitions |
+| `data/interim/` | Processed tables the model needs (about 10 MB) |
+| `outputs/` | Forecast, nowcast, backtest and scorecard outputs |
+| `frozen/` | The locked final pre-election forecast |
+| `docs/` | The GitHub Pages site (`index.html`, `app.js`, `style.css`, data files) |
+| `.github/workflows/` | Forecast, polls, freeze, election-night and scoring workflows |
+
+## Running
 
 ```sh
 pip install -r requirements.txt
 python src/pipeline.py                 # backtest -> forecast -> site, from data/interim (about 20 s)
 python src/pipeline.py --refresh-data  # re-download IEC results and by-elections first (slow)
 python src/update_polls.py             # refresh polls from Wikipedia
+python src/fetch_candidates.py         # re-read the IEC candidate lists
 python src/nowcast.py replay           # test the election-night nowcast on 2021
 python src/nowcast.py live             # election night: pull IEC results and update ward calls
-python src/freeze.py                   # lock the final pre-election forecast in frozen/ (automatic, 3 Nov 21:00 SAST)
-python src/score.py 2026               # after results are declared: score frozen/ against them
-python src/score.py test2021           # check the scorer on the 2021 backtest (outputs/scorecard_test2021.md)
+python src/freeze.py                   # lock the final forecast in frozen/
+python src/score.py 2026               # score frozen/ against declared results
+python src/score.py test2021           # check the scorer on the 2021 backtest
 ```
-
-Polls are in `config/polls_2026.csv` (from Wikipedia) and `config/polls_2026_extra.csv` (by hand).
-Ward candidates are in `config/candidates_2026.csv` (`python src/fetch_candidates.py` re-reads the IEC lists).
 
 ## Automation (GitHub Actions)
 
-- **Forecast:** on every change to config, code or data, and daily. Re-runs everything and commits
-  the site.
-- **Poll update:** daily. Opens a pull request when Wikipedia's poll tables change.
-- **Freeze:** 21:00 SAST on 3 November. Copies the final forecast to `frozen/`, tags the commit
-  `forecast-final`, and stops the daily forecast from changing it.
-- **Score:** run by hand once the IEC declares results. Scores the frozen forecast and adds a
-  "How did the forecast do?" section to the site.
-- **Election night:** every 15 minutes, 4–6 November. Runs the live nowcast. `src/election_night.sh`
-  is a local backup.
+- **Forecast:** on every change to config, code or data, and daily; re-runs everything and commits the site.
+- **Polls:** daily; opens a pull request when Wikipedia's poll tables change.
+- **Freeze:** 21:00 SAST on 3 November; copies the final forecast to `frozen/`, tags `forecast-final` and stops further changes.
+- **Election night:** every 15 minutes, 4–6 November; runs the live nowcast (`src/election_night.sh` is a local backup).
+- **Score:** run by hand once results are declared.
 
 ## Data
 
-IEC results portal (results, ward lists, by-elections), MDB Spatial Knowledge Hub (2026 ward
-boundaries), and polls from Ipsos, SRF/The Common Sense, SABI/News24 and eNCA/MarkData. Bulk raw data
-lives outside the repo (`$ELECTION_DATA`, default `~/ElectionModelData`); the processed tables the model
-needs (about 10 MB) are committed in `data/interim`.
+IEC results portal (results, ward lists, by-elections), MDB Spatial Knowledge Hub (2026 ward boundaries) and published polls. Bulk raw data lives outside the repository (`$ELECTION_DATA`, default `~/ElectionModelData`); the processed tables are committed in `data/interim`.
